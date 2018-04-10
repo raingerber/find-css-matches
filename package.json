@@ -1,0 +1,22 @@
+{
+  "name": "find-all-matches",
+  "version": "1.0.0",
+  "description": "Find all CSS selectors that match an HTML snippet.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": {
+    "name": "Matthew Armstrong",
+    "email": "raingerber2@gmail.com"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "object-hash": "^1.3.0",
+    "puppeteer": "^1.2.0"
+  },
+  "devDependencies": {
+    "standard": "^11.0.1"
+  }
+}
