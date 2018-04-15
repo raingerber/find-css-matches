@@ -1,9 +1,12 @@
 {
-  "name": "find-all-matches",
+  "name": "find-css-matches",
   "version": "1.0.0",
   "description": "Find all CSS selectors that match an HTML snippet.",
-  "main": "index.js",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
   "scripts": {
+    "build": "rollup -c",
+    "pretest": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -14,9 +17,21 @@
   "license": "ISC",
   "dependencies": {
     "object-hash": "^1.3.0",
-    "puppeteer": "^1.2.0"
+    "puppeteer": "^1.2.0",
+    "rollup": "^0.57.1",
+    "rollup-plugin-commonjs": "^9.1.0",
+    "rollup-plugin-node-resolve": "^3.3.0",
+    "rollup-plugin-re": "^1.0.6"
   },
   "devDependencies": {
     "standard": "^11.0.1"
+  },
+  "files": [
+    "dist"
+  ],
+  "standard": {
+    "ignore": [
+      "dist"
+    ]
   }
 }

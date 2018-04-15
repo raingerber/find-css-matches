@@ -2,7 +2,7 @@
 
 // https://developer.mozilla.org/en-US/docs/Web/API/CSSRule
 
-const CSS_RULE_TYPES = Object.freeze([
+export default Object.freeze([
   'UNKNOWN_RULE',              // 0
   'STYLE_RULE',                // 1
   'CHARSET_RULE',              // 2
@@ -21,5 +21,3 @@ const CSS_RULE_TYPES = Object.freeze([
   'VIEWPORT_RULE',             // 15
   'REGION_STYLE_RULE'          // 16
 ])
-
-module.exports = CSS_RULE_TYPES

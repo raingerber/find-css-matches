@@ -1,6 +1,6 @@
 # Find All Matches
 
-Given a stylesheet and a snippet of HTML, find the CSS selectors that could apply to each of the elements. Uses [Puppeteer](https://github.com/GoogleChrome/puppeteer).
+Given some HTML and CSS, find the selectors that apply to each element. Uses [Puppeteer](https://github.com/GoogleChrome/puppeteer).
 
 ## Example
 
@@ -21,7 +21,7 @@ const styles = [{ path: './index.css' }]
 
 const options = { recursive: true }
 
-getMatchingSelectors(html, styles, options).then(selectors => {
+getMatchingSelectors(styles, html, options).then(selectors => {
   console.log(selectors)
 })
 ```
@@ -109,7 +109,7 @@ Partial Matches:
 
 ## API
 
-```getMatchingSelectors(html, styles, [options])```
+```getMatchingSelectors(styles, html, [options])```
 
 Returns a promise
 
@@ -119,11 +119,7 @@ an HTML snippet
 
 **styles**
 
-an array of objects, where each object has a `url`, `path`, or `content` key. These objects are forwarded to [Puppeteer#addStyleTag](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pageaddstyletagoptions)
-
-**options**
-
-optional config
+an array of objects, where each has a `url`, `path`, or `content` key. These objects are forwarded to [Puppeteer#addStyleTag](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pageaddstyletagoptions)
 
 **options.recursive**
 
@@ -175,12 +171,8 @@ Joining the parts with a space will return the full selector.
           '.child'
         ]
       ],
-      mediaText: '(max-width: 500px)',
-      // these are unique hashes for
-      // the actual styles in the rule
-      // TODO have an option for disabling this;
-      // it's only there to support jest-css-match-serializer
-      hash: 'cb361c6573a2309aec634c4bbfe88babf35017f8'
+      mediaText: '(max-width: 500px)'
+      // TODO document optional cssText
     },
     {
       selector: [
@@ -191,8 +183,7 @@ Joining the parts with a space will return the full selector.
           '.child'
         ]
       ],
-      mediaText: '',
-      hash: 'faae4d6410b0a4850d8006f7b4c0d559be683378'
+      mediaText: ''
     }
   ],
   // TODO when recursive is false, the returned
@@ -211,3 +202,7 @@ Joining the parts with a space will return the full selector.
 ## See Also:
 
 [jest-css-match-serializer](https://github.com/raingerber/jest-css-match-serializer) - take snapshots of the CSS that applies to an HTML snippet or React component
+
+TODO
+
+- Does not work for snippets with <html> or <body> tags
