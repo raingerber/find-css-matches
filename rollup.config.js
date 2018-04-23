@@ -1,64 +1,68 @@
 import replace from 'rollup-plugin-re'
-import resolve from 'rollup-plugin-node-resolve'
 import commonjs from 'rollup-plugin-commonjs'
+import resolve from 'rollup-plugin-node-resolve'
+import multiEntry from 'rollup-plugin-multi-entry'
+import MagicString from 'magic-string'
 
 import pkg from './package.json'
 import * as functions from './src/functions'
 
-const STUB_REGEX = /([\t ]*)\/\/\s*STUB:([^\s]+)/
+const {TEST_BUILD} = process.env
 
-// TODO add mapValues devDependency
-// const stringified = mapValues(functions, fn => fn.toString())
+const compact = input => input.filter(item => item)
 
-const stringified = (function functionsToString (functions) {
-  const keys = Object.keys(functions)
-  return keys.reduce((acc, key) => {
-    acc[key] = functions[key].toString()
-    return acc
-  }, {})
-}(functions))
+// ; rm __test__/index.js
 
-let unused = Object.keys(stringified)
+const config = [{
+  plugins: compact([
+    replace({
+      patterns: [{
+        match: '**/src/css-parser.js',
+        test: /([\t ]*)\/\/\s*STUB:([^\s]+)/g,
+        replace: (fullMatch, whitespace, id) => {
+          const fn = functions[id]
+          if (!fn) {
+            throw new Error(`[build error] The ${id} function is not defined.`)
+          }
 
-function replaceFunctionStub (fullMatch, whitespace, id) {
-  let fn = stringified[id]
-  if (fn) {
-    // TODO insert whitespace
-    // TODO warn if these are not all used? or record how often each of them is used?
-    // maybe you could have a setting for how often each of them should be used
-    unused = unused.filter(key => key !== id)
-    // console.log(unused)
-    return fn
-  }
+          const str = new MagicString(fn.toString())
+          str.indent(whitespace)
+          return str.toString()
+        }
+      }]
+    }),
+    TEST_BUILD ? multiEntry() : null,
+    resolve(),
+    commonjs({
+      sourceMap: !TEST_BUILD
+    })
+  ]),
+  external: [
+    'puppeteer',
+    'chalk'
+  ],
+  input: './index.js',
+  output: [
+    {
+      file: pkg.main,
+      format: 'cjs'
+    },
+    {
+      file: pkg.module,
+      format: 'es'
+    }
+  ]
+}]
 
-  throw new Error(`[build error] The ${id} function is not defined.`)
+if (TEST_BUILD) {
+  Object.assign(config[0], {
+    input: './src/*.js',
+    output: {
+      sourcemap: 'inline',
+      file: '__test__/index.js',
+      format: 'cjs'
+    }
+  })
 }
 
-export default [
-  {
-    plugins: [
-      replace({
-        patterns: [{
-          test: STUB_REGEX,
-          replace: replaceFunctionStub
-        }]
-      })
-      // resolve(),
-      // commonjs({
-      //   sourceMap: false
-      // })
-    ],
-    input: './index.js',
-    // external: ['puppeteer'],
-    output: [
-      {
-        file: pkg.main,
-        format: 'cjs'
-      },
-      {
-        file: pkg.module,
-        format: 'es'
-      }
-    ]
-  }
-]
+export default config

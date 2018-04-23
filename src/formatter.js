@@ -1,43 +1,52 @@
 import chalk from 'chalk'
 
-// TODO remove hash (also remove it from package.json)
-
 /**
- * @param {Object} param
- * @param {Array} param.selectors
- * @param {Array} param.children
+ * @param {Array} param1.selectors
+ * @param {Array} param1.children
+ * @param {Object} options
  * @param {String} indent
  * @return {String}
  */
-function stringify ({selectors, children}, indent = '') {
-  let result = selectors.map(({mediaText, selector, hash}) => {
-    return `${indent}\n${formatSelector(mediaText, selector, hash, indent)}`
-  }).join('\n')
-
-  result += children.map(child => {
-    return `\n\n${stringify(child, `${indent}  `)}`
+function stringify ({selectors, children = []}, options, indent = '') {
+  // console.log('stringifying')
+  let result = selectors.map(({mediaText, selector}) => {
+    return `${indent}${formatSelector(mediaText, selector, options, indent)}`
+  }).join('\n') || `${indent}...`
+  // console.log(`"${result}"`)
+  result += children.map((child, index) => {
+    return `\n\n${indent}  ${index}\n${stringify(child, options, `${indent}  `)}`
   }).join('')
+
+  // result += children.map(child => {
+  //   return `\n\n${stringify(child, options, `${indent}  `)}`
+  // }).join('')
 
   return result
 }
 
 /**
- *
  * @param {String} mediaText
  * @param {Array<Object>} selectors
- * @param {String} hash
+ * @param {Object} options
  * @param {String} indent
  * @return {String}
  */
-function formatSelector (mediaText, selectors, hash, indent) {
-  const selector = selectors.map(([unmatched, matched]) => {
-    let result = chalk.yellow(unmatched)
-    if (unmatched && matched) result += ' '
-    result += chalk.green.underline(matched)
-    return result
-  }).join(', ')
+function formatSelector (mediaText, selectors, options, indent) {
+  // TODO have an option for the mediaText
+  const unmatched = options.format.unmatched || chalk.yellow
+  const matched = options.format.matched || chalk.green.underline
 
-  return `${indent}${mediaText ? `${chalk.yellow(mediaText)}\n${indent}` : ''}${selector} ${chalk.dim(hash)}`
+  const parts = selectors.map(item => {
+    return `${unmatched(item[0])} ${matched(item[1])}`.trim()
+  })
+
+  const selector = parts.join(', ')
+
+  const media = mediaText ? `${chalk.yellow(mediaText)}\n${indent}` : ''
+
+  // return indent + media + selector
+
+  return `${indent}${media}${selector}`
 }
 
 export {

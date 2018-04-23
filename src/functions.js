@@ -2,66 +2,40 @@
 
 /**
  * @param {Function} matches
- * @param {Array<CSSRule>} rules
+ * @param {Array<CSSRule>} allRules
  * @param {DOMElement} element
- * @param {Object} options
  * @param {Boolean} isRoot
  * @return {Object}
  */
-function getMatchingRules (matches, rules, element, options, isRoot) {
-  const result = {}
-  const matchingRules = getRulesForElement(matches, rules, element, isRoot)
-  result.selectors = matchingRules.map(({selector, rule}) => {
-    const ruleObj = {selector}
-    if (rule.parentRule && rule.parentRule.media) {
-      ruleObj.mediaText = rule.parentRule.media.mediaText
-    }
-
-    if (options.cssText === true) {
-      ruleObj.cssText = rule.cssText
-    }
-
-    return ruleObj
-  })
-
-  if (options.recursive !== true) {
-    return result
-  }
-
-  // TODO children or childNodes?
-  result.children = Array.prototype.map.call(element.children, child => {
-    return getMatchingRules(matches, rules, child, options, false)
-  })
-
-  return result
-}
-
-/**
- * @param {Function} matches
- * @param {Array<CSSRule>} rules
- * @param {DOMElement} element
- * @param {Boolean} isRoot
- * @return {Array<String>}
- */
-function getRulesForElement (matches, rules, element, isRoot) {
-  return rules.reduce((acc, rule) => {
-    let foundMatch = false
-    const parts = rule.selectorText.split(/\s*,\s*/)
-    const selector = parts.map(segment => {
-      const segmented = findMatchingSegment(matches, element, segment, isRoot)
+function findMatchingRules (matches, allRules, element, options, isRoot) {
+  const selectors = allRules.reduce((acc, rule) => {
+    let hasMatch = false
+    const selectors = rule.selectorText.trim().split(/\s*,\s*/)
+    const segments = selectors.map(selector => {
+      const segmented = findMatchingSegment(matches, element, selector, isRoot)
       if (segmented[1]) {
-        foundMatch = true
+        hasMatch = true
       }
 
       return segmented
     })
 
-    if (foundMatch) {
-      acc.push({selector, rule})
+    if (hasMatch) {
+      acc.push(formatRule(segments, rule, options))
     }
 
     return acc
   }, [])
+
+  if (options.recursive !== true) {
+    return {selectors}
+  }
+
+  const children = Array.prototype.map.call(element.children, child => {
+    return findMatchingRules(matches, allRules, child, options, false)
+  })
+
+  return {selectors, children}
 }
 
 /**
@@ -72,27 +46,41 @@ function getRulesForElement (matches, rules, element, isRoot) {
  * @return {Array<String>}
  */
 function findMatchingSegment (matches, element, selector, isRoot) {
-  const parts = selector.trim().split(/\s+/) // split on whitespace
-  for (let i = 0; i < parts.length; i++) {
-    if (/[+~>]/.test(parts[i])) {
-      if (isRoot) {
-        continue
-      } else {
-        break
-      }
-    }
-
+  const parts = selector.split(/\s+/)
+  let i = isRoot ? parts.length - 1 : 0
+  while (i < parts.length && !/[+~>]/.test(parts[i])) {
     const segment = parts.slice(i).join(' ')
     if (matches(element, segment)) {
       return [parts.slice(0, i).join(' '), segment]
     }
+
+    i++
   }
 
-  return [selector, '']
+  return [parts.join(' '), '']
+}
+
+/**
+ * @param {String} selector
+ * @param {CSSRule} rule
+ * @param {Object} options
+ * @return {Object}
+ */
+function formatRule (selector, rule, options) {
+  const ruleObj = {selector}
+  if (rule.parentRule && rule.parentRule.media) {
+    ruleObj.mediaText = rule.parentRule.media.mediaText
+  }
+
+  if (options.cssText === true) {
+    ruleObj.cssText = rule.cssText // TODO not cssText, but the actual style rules should be returned
+  }
+
+  return ruleObj
 }
 
 export {
-  getMatchingRules,
-  getRulesForElement,
-  findMatchingSegment
+  findMatchingRules,
+  findMatchingSegment,
+  formatRule
 }

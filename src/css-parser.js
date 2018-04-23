@@ -1,15 +1,15 @@
 import puppeteer from 'puppeteer'
 
-import CSS_RULE_TYPES from './css-rule-types'
+import {CSS_RULE_TYPES} from './constants'
 
-import {getMatchingRules} from './functions'
+const castArray = input => Array.isArray(input) ? input : [input]
 
 /**
  * @param {String} html
  * @return {String}
  */
 function getSelector (html) {
-  const match = /\s*<\s*([a-z]+)/i.exec(html) // TODO what's the difference between exec and match again?
+  const match = /<\s*([a-z]+)/i.exec(html)
   if (!match) {
     throw new Error(`Input HTML was not valid. Received:\n"${html}"`) // TODO truncate the html?
   }
@@ -38,11 +38,11 @@ function findMatchingSelectors (CSS_RULE_TYPES, elementQuery, options) {
     window.Element.prototype.webkitMatchesSelector
   )
 
-  // STUB:getMatchingRules
-
-  // STUB:getRulesForElement
+  // STUB:findMatchingRules
 
   // STUB:findMatchingSegment
+
+  // STUB:formatRule
 
   let rules = []
   for (let {cssRules} of document.styleSheets) {
@@ -65,7 +65,9 @@ function findMatchingSelectors (CSS_RULE_TYPES, elementQuery, options) {
   }
 
   const element = document.querySelector(elementQuery)
-  return getMatchingRules(matches, rules, element, options, true)
+
+  // eslint-disable-next-line no-undef
+  return findMatchingRules(matches, rules, element, options, true)
 }
 
 /**
@@ -77,6 +79,7 @@ function findMatchingSelectors (CSS_RULE_TYPES, elementQuery, options) {
 async function createPage (browser, styles, html) {
   const page = await browser.newPage()
   await page.setContent(html)
+  // console.log(await page.content())
   for (let i = 0; i < styles.length; i++) {
     await page.addStyleTag(styles[i])
   }
@@ -91,10 +94,12 @@ async function createPage (browser, styles, html) {
  * @param {Object} options
  * @return {Promise<Array>}
  */
-async function getMatchingSelectors (styles, html, options) {
+function getMatchingSelectors (styles, html, options) {
+  // styles = Array.isArray(styles) ? styles : [styles]
+  // TODO call this function from index.js
   const elementQuery = getSelector(html)
   return puppeteer.launch().then(async browser => {
-    const page = await createPage(browser, styles, html)
+    const page = await createPage(browser, castArray(styles), html)
     const selectors = await page.evaluate(
       findMatchingSelectors,
       CSS_RULE_TYPES,
