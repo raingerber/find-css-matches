@@ -9,6 +9,8 @@ import * as functions from './src/functions'
 
 const {TEST_BUILD} = process.env
 
+// TODO rollup + jest are dev dependencies
+
 const compact = input => input.filter(item => item)
 
 // ; rm __test__/index.js
@@ -38,8 +40,7 @@ const config = [{
     })
   ]),
   external: [
-    'puppeteer',
-    'chalk'
+    'puppeteer' // TODO is "external" correct?
   ],
   input: './index.js',
   output: [
