@@ -42,7 +42,7 @@ const config = [{
   external: [
     'puppeteer' // TODO is "external" correct?
   ],
-  input: './index.js',
+  input: './src/index.js',
   output: [
     {
       file: pkg.main,

@@ -1,9 +1,8 @@
-// TODO what about this case .a>.b -- do we need to account for combinators without spaces around them? or does chrome format them with spaces?
-
 /**
  * @param {Function} matches
  * @param {Array<CSSRule>} allRules
  * @param {DOMElement} element
+ * @param {Object} options
  * @param {Boolean} isRoot
  * @return {Object}
  */
@@ -21,7 +20,8 @@ function findMatchingRules (matches, allRules, element, options, isRoot) {
     })
 
     if (hasMatch) {
-      acc.push(formatRule(segments, rule, options))
+      const formatted = formatRule(segments, rule, options)
+      acc.push(formatted)
     }
 
     return acc
@@ -73,7 +73,7 @@ function formatRule (selector, rule, options) {
   }
 
   if (options.cssText === true) {
-    ruleObj.cssText = rule.cssText // TODO not cssText, but the actual style rules should be returned
+    ruleObj.cssText = rule.cssText
   }
 
   return ruleObj

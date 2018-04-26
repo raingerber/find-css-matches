@@ -5,7 +5,7 @@
 // TODO adds flags for hasBodyTag, hasHtmlTag
 const {getMatchingSelectors} = require('../__test__/index')
 
-describe('getMatches', () => {
+describe('findMatches', () => {
   // it('should not find anything', () => {
   //   return getMatchingSelectors([], 'sdfsdf', {}).then(result => {
   //     console.log(JSON.stringify(result, null, 2))
