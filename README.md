@@ -7,7 +7,7 @@ Given some HTML and CSS, find the selectors that apply to each element. Uses [Pu
 `index.js`
 
 ```js
-const { getMatchingSelectors } = require('find-all-matches')
+const { findMatches } = require('find-css-matches')
 
 const html = `
 <div class="cadabra">
@@ -21,7 +21,7 @@ const styles = [{ path: './index.css' }]
 
 const options = { recursive: true }
 
-getMatchingSelectors(styles, html, options).then(selectors => {
+findMatches(styles, html, options).then(selectors => {
   console.log(selectors)
 })
 ```
@@ -109,7 +109,7 @@ Partial Matches:
 
 ## API
 
-```getMatchingSelectors(styles, html, [options])```
+```findMatches(styles, html, [options])```
 
 Returns a promise
 

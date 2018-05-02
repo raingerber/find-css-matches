@@ -1,32 +1,22 @@
-import {getMatchingSelectors} from './css-parser'
+import {findMatchesFromPage} from './css-parser'
 
-const identity = input => input
-
-const castArray = input => Array.isArray(input) ? input : [input]
-
-/**
- * @param {Object} rawOptions
- * @return {Object}
- */
-function normalizeOptions (rawOptions) {
-  let {findPartialMatches, recursive, cssText, unmatched, matched} = rawOptions
-  if (typeof findPartialMatches !== 'boolean') findPartialMatches = true
-  if (typeof recursive !== 'boolean') recursive = false
-  if (typeof cssText !== 'boolean') cssText = false
-  if (typeof unmatched !== 'function') unmatched = identity
-  if (typeof matched !== 'function') matched = identity
-  return {findPartialMatches, recursive, cssText, unmatched, matched}
+const DEFAULT_OPTIONS = {
+  cssText: false,
+  recursive: false,
+  findPartialMatches: true,
+  formatSelector: (a, b) => [a, b]
 }
 
 /**
- * @param {Object|Array} styles
+ * @param {Object|Array<Object>} styles
  * @param {String} html
- * @param {Object} rawOptions
+ * @param {Object} userOptions
  * @return {Promise<Object>}
  */
-function findMatches (styles, html, rawOptions = {}) {
-  const options = normalizeOptions(rawOptions)
-  return getMatchingSelectors(castArray(styles), html, options)
+function findMatches (styles, html, userOptions) {
+  const stylesArray = Array.isArray(styles) ? styles : [styles]
+  const options = Object.assign({}, DEFAULT_OPTIONS, userOptions)
+  return findMatchesFromPage(stylesArray, html, options)
 }
 
 export {findMatches}

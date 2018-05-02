@@ -34,11 +34,11 @@ const config = [{
     TEST_BUILD ? multiEntry() : null,
     resolve(),
     commonjs({
-      sourceMap: !TEST_BUILD
+      sourceMap: TEST_BUILD
     })
   ]),
   external: [
-    'puppeteer' // TODO is "external" correct?
+    'puppeteer'
   ],
   input: './src/index.js',
   output: [

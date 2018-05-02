@@ -1,20 +1,19 @@
 /**
  * @param {Function} matches
- * @param {Array<CSSRule>} allRules
+ * @param {Array<CSSRule>} rules
  * @param {DOMElement} element
  * @param {Object} options
  * @param {Boolean} isRoot
  * @return {Object}
  */
-function findMatchingRules (matches, allRules, element, options, isRoot) {
+function findRulesForElement (matches, rules, element, options, isRoot) {
   const result = {
-    matches: allRules.reduce((acc, rule) => {
+    matches: rules.reduce((acc, rule) => {
       let hasMatch = false
-      const selectorParts = rule.selectorText.trim().split(/\s*,\s*/)
-      const segments = selectorParts.map(part => {
+      const selector = rule.selectorText.split(/\s*,\s*/).map(part => {
         let segmented
         if (options.findPartialMatches) {
-          segmented = findMatchingSegment(matches, element, part, isRoot)
+          segmented = findMatchingPartOfSelector(matches, element, part, isRoot)
         } else if (matches(element, part)) {
           segmented = ['', part]
         } else {
@@ -29,8 +28,7 @@ function findMatchingRules (matches, allRules, element, options, isRoot) {
       })
 
       if (hasMatch) {
-        const formatted = formatRule(segments, rule, options)
-        acc.push(formatted)
+        acc.push(formatRule(selector, rule, options))
       }
 
       return acc
@@ -39,7 +37,7 @@ function findMatchingRules (matches, allRules, element, options, isRoot) {
 
   if (options.recursive === true) {
     result.children = Array.prototype.map.call(element.children, child => {
-      return findMatchingRules(matches, allRules, child, options, false)
+      return findRulesForElement(matches, rules, child, options, false)
     })
   }
 
@@ -57,23 +55,24 @@ function findMatchingRules (matches, allRules, element, options, isRoot) {
  * @param {Boolean} isRoot
  * @return {Array<String>}
  */
-function findMatchingSegment (matches, element, selector, isRoot) {
+function findMatchingPartOfSelector (matches, element, selector, isRoot) {
   const parts = selector.split(/\s+/)
-  let i = isRoot ? parts.length - 1 : 0
-  while (i < parts.length && !/[+~>]/.test(parts[i])) {
-    const segment = parts.slice(i).join(' ')
-    if (matches(element, segment)) {
-      return [parts.slice(0, i).join(' '), segment]
+  for (let i = 0; i < parts.length; i++) {
+    if (!isRoot && /[+~>]/.test(parts[i])) {
+      break
     }
 
-    i++
+    const _selector = parts.slice(i).join(' ')
+    if (matches(element, _selector)) {
+      return [parts.slice(0, i).join(' '), _selector]
+    }
   }
 
   return [parts.join(' '), '']
 }
 
 /**
- * @param {String} selector
+ * @param {Array<Array<String>>} selector
  * @param {CSSRule} rule
  * @param {Object} options
  * @return {Object}
@@ -88,11 +87,15 @@ function formatRule (selector, rule, options) {
     ruleObj.cssText = rule.cssText
   }
 
+  if (options.findPartialMatches) {
+    ruleObj.isPartialMatch = selector.every(([unmatched]) => unmatched)
+  }
+
   return ruleObj
 }
 
 export {
-  findMatchingRules,
-  findMatchingSegment,
+  findRulesForElement,
+  findMatchingPartOfSelector,
   formatRule
 }

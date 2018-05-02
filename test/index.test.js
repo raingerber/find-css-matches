@@ -6,7 +6,7 @@ const {findMatches} = require('../__test__/index')
 
 describe('findMatches', () => {
   // it('should not find anything', () => {
-  //   return getMatchingSelectors([], 'sdfsdf', {}).then(result => {
+  //   return findMatchingRules([], 'sdfsdf', {}).then(result => {
   //     console.log(JSON.stringify(result, null, 2))
   //   })
   // })
@@ -33,13 +33,17 @@ describe('findMatches', () => {
   //   const options = {
   //     recursive: true
   //   }
-  //   return getMatchingSelectors(styles, html, options).then(result => {
+  //   return findMatchingRules(styles, html, options).then(result => {
   //     console.log(JSON.stringify(result, null, 2))
   //   })
   // })
+
   it('should return the correct selectors', () => {
     const styles = {
       content: `
+      .thing body {
+        color: pink;
+      }
       body, * {
         color: green;
       }
@@ -55,12 +59,17 @@ describe('findMatches', () => {
       </body>
     `
     const options = {
-      cssText: true,
-      recursive: true,
-      matched: s => s ? `---${s}---` : s
+      cssText: false,
+      recursive: false,
+      findPartialMatches: true,
+      formatSelector: (a, b) => [a, b ? `---${b}---` : b]
     }
+    expect(1).toEqual(1)
     return findMatches(styles, html, options).then(result => {
-      console.log(JSON.stringify(result, null, 2))
+      console.log(result)
+      expect(result).toMatchSnapshot()
+      // expect(1).toEqual(1)
+      // console.log(JSON.stringify(result, null, 2))
     })
   })
 })

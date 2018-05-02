@@ -1,10 +1,6 @@
 /* eslint-env jest */
 
-const {
-  getMatchingRules,
-  getRulesForElement,
-  findMatchingSegment
-} = require('../__test__/index')
+const {findMatchingPartOfSelector} = require('../__test__/index')
 
 /*
 TODO warn that it won't detect selectors with "body" or "html" in them
@@ -35,7 +31,7 @@ CHILD
 
 */
 
-describe('findMatchingSegment', () => {
+describe('findMatchingPartOfSelector', () => {
   let matches
   beforeEach(() => {
     matches = jest.fn(() => false)
@@ -43,7 +39,7 @@ describe('findMatchingSegment', () => {
 
   function helper (selector, segments, isRoot) {
     const calls = segments.map(s => ['el', s])
-    const result = findMatchingSegment(matches, 'el', selector, isRoot)
+    const result = findMatchingPartOfSelector(matches, 'el', selector, isRoot)
     expect(matches.mock.calls).toEqual(calls)
     expect(result).toEqual([selector, '']) // no match
   }
@@ -57,16 +53,6 @@ describe('findMatchingSegment', () => {
     ]
     helper(selector, segments, isRoot)
   }
-
-  it('should only check the last part when isRoot is true', () => {
-    helper(
-      '.a .b .c > .d',
-      [
-        '.d'
-      ],
-      true // isRoot
-    )
-  })
 
   it('should stop at the first > when isRoot is false', () => {
     combinatorHelper('>', false)
