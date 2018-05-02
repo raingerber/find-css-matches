@@ -80,9 +80,3 @@ describe('findMatchingSegment', () => {
     combinatorHelper('+', false)
   })
 })
-
-// describe('another test', () => {
-//   it('should', () => {
-//     // console.log(matches)
-//   })
-// })

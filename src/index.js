@@ -9,14 +9,13 @@ const castArray = input => Array.isArray(input) ? input : [input]
  * @return {Object}
  */
 function normalizeOptions (rawOptions) {
-  let {unmatched, matched} = rawOptions.format || {}
-  let {recursive, cssText, partialMatches} = rawOptions
+  let {findPartialMatches, recursive, cssText, unmatched, matched} = rawOptions
+  if (typeof findPartialMatches !== 'boolean') findPartialMatches = true
   if (typeof recursive !== 'boolean') recursive = false
   if (typeof cssText !== 'boolean') cssText = false
-  if (typeof partialMatches !== 'boolean') partialMatches = true
   if (typeof unmatched !== 'function') unmatched = identity
   if (typeof matched !== 'function') matched = identity
-  return {recursive, cssText, partialMatches, unmatched, matched}
+  return {findPartialMatches, recursive, cssText, unmatched, matched}
 }
 
 /**
@@ -27,17 +26,7 @@ function normalizeOptions (rawOptions) {
  */
 function findMatches (styles, html, rawOptions = {}) {
   const options = normalizeOptions(rawOptions)
-  const matches = getMatchingSelectors(castArray(styles), html, options)
-  return matches
+  return getMatchingSelectors(castArray(styles), html, options)
 }
 
 export {findMatches}
-
-/* TODO
-2. add unit tests
-4. get <body> and <html> tags working (add tests for this)
-5. document how the order of selectors is determined in the output
-6. if the same selector is used multiple times, how is that handled?
-8. add a note that the html needs to have a single root element
-9. warn that it uses async / await
-*/

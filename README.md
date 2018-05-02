@@ -205,4 +205,14 @@ Joining the parts with a space will return the full selector.
 
 TODO
 
-- Does not work for snippets with <html> or <body> tags
+- Does not work for snippets with <html> or <body> tags (or does it?)
+- 8. add a note that the html needs to have a single root element
+
+warn that it uses async / await
+
+/* TODO
+5. document how the order of selectors is determined in the output
+6. if the same selector is used multiple times, how is that handled?
+*/
+
+document all the new options (unmatched, matched, findPartialMatches)

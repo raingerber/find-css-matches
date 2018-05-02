@@ -7,38 +7,50 @@
  * @return {Object}
  */
 function findMatchingRules (matches, allRules, element, options, isRoot) {
-  const selectors = allRules.reduce((acc, rule) => {
-    let hasMatch = false
-    const selectors = rule.selectorText.trim().split(/\s*,\s*/)
-    const segments = selectors.map(selector => {
-      const segmented = findMatchingSegment(matches, element, selector, isRoot)
-      if (segmented[1]) {
-        hasMatch = true
+  const result = {
+    matches: allRules.reduce((acc, rule) => {
+      let hasMatch = false
+      const selectorParts = rule.selectorText.trim().split(/\s*,\s*/)
+      const segments = selectorParts.map(part => {
+        let segmented
+        if (options.findPartialMatches) {
+          segmented = findMatchingSegment(matches, element, part, isRoot)
+        } else if (matches(element, part)) {
+          segmented = ['', part]
+        } else {
+          segmented = [part, '']
+        }
+
+        if (segmented[1]) {
+          hasMatch = true
+        }
+
+        return segmented
+      })
+
+      if (hasMatch) {
+        const formatted = formatRule(segments, rule, options)
+        acc.push(formatted)
       }
 
-      return segmented
-    })
-
-    if (hasMatch) {
-      const formatted = formatRule(segments, rule, options)
-      acc.push(formatted)
-    }
-
-    return acc
-  }, [])
-
-  if (options.recursive !== true) {
-    return {selectors}
+      return acc
+    }, [])
   }
 
-  const children = Array.prototype.map.call(element.children, child => {
-    return findMatchingRules(matches, allRules, child, options, false)
-  })
+  if (options.recursive === true) {
+    result.children = Array.prototype.map.call(element.children, child => {
+      return findMatchingRules(matches, allRules, child, options, false)
+    })
+  }
 
-  return {selectors, children}
+  return result
 }
 
 /**
+ * returns an array that contains 2 strings: [<unmatched>, <matched>]
+ * joining the two strings with a space will produce the original selector
+ * if the <matched> string is empty, there was NO MATCH found
+ * if neither string is empty, it was a partial match
  * @param {Function} matches
  * @param {DOMElement} element
  * @param {String} selector

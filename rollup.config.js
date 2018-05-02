@@ -9,8 +9,6 @@ import * as functions from './src/functions'
 
 const {TEST_BUILD} = process.env
 
-// TODO rollup + jest are dev dependencies
-
 const compact = input => input.filter(item => item)
 
 // ; rm __test__/index.js

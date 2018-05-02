@@ -54,6 +54,35 @@ function findMatchingSelectors (CSS_RULE_TYPES, elementQuery, options) {
 }
 
 /**
+ * this needs to be called outside the browser scope,
+ * because it uses options.unmatched and options.matched,
+ * but functions can't be passed into page.evaluate
+ * @param {Object} param0
+ * @param {Array} param0.matches
+ * @param {Array} param0.children
+ * @param {Object} options
+ * @return {Object}
+ */
+function stringify ({matches, children}, options) {
+  const result = {
+    matches: matches.map(match => {
+      return {
+        ...match,
+        selector: match.selector.map(([unmatched, matched]) => {
+          return `${options.unmatched(unmatched)} ${options.matched(matched)}`.trim()
+        }).join(', ')
+      }
+    })
+  }
+
+  if (children) {
+    result.children = children.map(child => stringify(child, options))
+  }
+
+  return result
+}
+
+/**
  * @param {Browser} browser
  * @param {Array<Object>} styles
  * @param {String} html
@@ -80,7 +109,7 @@ async function getMatchingSelectors (styles, html, options) {
   const elementQuery = getSelector(html)
   const browser = await puppeteer.launch()
   const page = await createPage(browser, styles, html)
-  const selectors = await page.evaluate(
+  let selectors = await page.evaluate(
     findMatchingSelectors,
     CSS_RULE_TYPES,
     elementQuery,
@@ -88,6 +117,7 @@ async function getMatchingSelectors (styles, html, options) {
   )
 
   browser.close()
+  selectors = stringify(selectors, options)
   return selectors
 }
 

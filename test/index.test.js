@@ -2,8 +2,7 @@
 
 // TODO add test fixtures
 // TODO how to handle empty / invalid html strings?
-// TODO adds flags for hasBodyTag, hasHtmlTag
-const {getMatchingSelectors} = require('../__test__/index')
+const {findMatches} = require('../__test__/index')
 
 describe('findMatches', () => {
   // it('should not find anything', () => {
@@ -11,30 +10,56 @@ describe('findMatches', () => {
   //     console.log(JSON.stringify(result, null, 2))
   //   })
   // })
+  // it('should return the correct selectors', () => {
+  //   const styles = [{
+  //     content: `
+  //     body > div {
+  //       color: green;
+  //     }
+  //     div {
+  //       color: yellow;
+  //     }
+  //     `
+  //   }]
+  //   const html = `
+  //     <div class="container">
+  //       <ul class="unordered-list">
+  //         <li class="list-item"></li>
+  //         <li class="list-item"></li>
+  //         <li class="list-item"></li>
+  //       </ul>
+  //     </div>
+  //   `
+  //   const options = {
+  //     recursive: true
+  //   }
+  //   return getMatchingSelectors(styles, html, options).then(result => {
+  //     console.log(JSON.stringify(result, null, 2))
+  //   })
+  // })
   it('should return the correct selectors', () => {
-    const styles = [{
+    const styles = {
       content: `
-      body > div {
+      body, * {
         color: green;
       }
-      div {
-        color: yellow;
+      * {
+        color: red;
       }
       `
-    }]
+    }
     const html = `
-      <div class="container">
-        <ul class="unordered-list">
-          <li class="list-item"></li>
-          <li class="list-item"></li>
-          <li class="list-item"></li>
-        </ul>
-      </div>
+      <body class='parent'>
+        <div class='child'>
+        </div>
+      </body>
     `
     const options = {
-      recursive: true
+      cssText: true,
+      recursive: true,
+      matched: s => s ? `---${s}---` : s
     }
-    return getMatchingSelectors(styles, html, options).then(result => {
+    return findMatches(styles, html, options).then(result => {
       console.log(JSON.stringify(result, null, 2))
     })
   })
