@@ -2,13 +2,14 @@ import puppeteer from 'puppeteer'
 
 import {CSS_RULE_TYPES} from './constants'
 
-import {stringify} from './stringify'
+import {stringifySelectors} from './stringify'
 
 /**
  * @param {String} html
  * @return {String}
  */
 function getElementQuery (html) {
+  // TODO what if there's a comment in the html?
   const match = /<\s*([a-z]+)/i.exec(html)
   if (!match) {
     throw new Error('Input HTML does not contain a valid tag.')
@@ -50,6 +51,10 @@ function findMatchingRules (CSS_RULE_TYPES, elementQuery, options) {
 
   // STUB:findMatchingPartOfSelector
 
+  // STUB:combinatorPreventsMatch
+
+  // STUB:getElementsUsingCombinator
+
   // STUB:formatRule
 
   let rules = []
@@ -60,7 +65,7 @@ function findMatchingRules (CSS_RULE_TYPES, elementQuery, options) {
           rules.push(rule)
           break
         case 'MEDIA_RULE':
-          rules.splice(rules.length, 0, ...rule.cssRules)
+          rules.push(...rule.cssRules)
           break
       }
     }
@@ -69,7 +74,7 @@ function findMatchingRules (CSS_RULE_TYPES, elementQuery, options) {
   const element = document.querySelector(elementQuery)
 
   // eslint-disable-next-line no-undef
-  return findRulesForElement(matches, rules, element, options, true)
+  return findRulesForElement(matches, rules, element, options, 0)
 }
 
 /**
@@ -90,7 +95,7 @@ async function findMatchesFromPage (styles, html, options) {
   )
 
   browser.close()
-  selectors = stringify(selectors, options)
+  selectors = stringifySelectors(selectors, options)
   return selectors
 }
 

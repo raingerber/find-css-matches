@@ -2,7 +2,7 @@ import {findMatchesFromPage} from './css-parser'
 
 const DEFAULT_OPTIONS = {
   cssText: false,
-  recursive: false,
+  recursive: true,
   findPartialMatches: true,
   formatSelector: (a, b) => [a, b]
 }
@@ -20,3 +20,14 @@ function findMatches (styles, html, userOptions) {
 }
 
 export {findMatches}
+
+// function elementUsesTagName (element, tagName) {
+//   return element.is(tagName) || !!element.querySelector(tagName)
+// }
+
+// function checkForSpecialTags (element) {
+//   const tagData = {
+//     html: elementUsesTagName(element, 'html'),
+//     body: elementUsesTagName(element, 'body')
+//   }
+// }

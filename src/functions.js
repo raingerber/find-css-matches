@@ -3,28 +3,28 @@
  * @param {Array<CSSRule>} rules
  * @param {DOMElement} element
  * @param {Object} options
- * @param {Boolean} isRoot
+ * @param {Number} depth
  * @return {Object}
  */
-function findRulesForElement (matches, rules, element, options, isRoot) {
+function findRulesForElement (matches, rules, element, options, depth = 0) {
   const result = {
     matches: rules.reduce((acc, rule) => {
       let hasMatch = false
       const selector = rule.selectorText.split(/\s*,\s*/).map(part => {
-        let segmented
+        let parsed
         if (options.findPartialMatches) {
-          segmented = findMatchingPartOfSelector(matches, element, part, isRoot)
+          parsed = findMatchingPartOfSelector(matches, element, part, depth)
         } else if (matches(element, part)) {
-          segmented = ['', part]
+          parsed = ['', part]
         } else {
-          segmented = [part, '']
+          parsed = [part, '']
         }
 
-        if (segmented[1]) {
+        if (parsed[1]) {
           hasMatch = true
         }
 
-        return segmented
+        return parsed
       })
 
       if (hasMatch) {
@@ -36,8 +36,9 @@ function findRulesForElement (matches, rules, element, options, isRoot) {
   }
 
   if (options.recursive === true) {
+    const _depth = depth + 1
     result.children = Array.prototype.map.call(element.children, child => {
-      return findRulesForElement(matches, rules, child, options, false)
+      return findRulesForElement(matches, rules, child, options, _depth)
     })
   }
 
@@ -52,23 +53,72 @@ function findRulesForElement (matches, rules, element, options, isRoot) {
  * @param {Function} matches
  * @param {DOMElement} element
  * @param {String} selector
- * @param {Boolean} isRoot
+ * @param {Number} depth
  * @return {Array<String>}
  */
-function findMatchingPartOfSelector (matches, element, selector, isRoot) {
+function findMatchingPartOfSelector (matches, element, selector, depth) {
   const parts = selector.split(/\s+/)
-  for (let i = 0; i < parts.length; i++) {
-    if (!isRoot && /[+~>]/.test(parts[i])) {
-      break
+  for (let i = 0, part = parts[i]; i < parts.length; part = parts[++i]) {
+    const unmatched = parts.slice(0, i).join(' ')
+    if (/[>+~]/.test(part)) {
+      if (combinatorPreventsMatch(matches, element, unmatched, part, depth)) {
+        break
+      }
+
+      continue
     }
 
-    const _selector = parts.slice(i).join(' ')
-    if (matches(element, _selector)) {
-      return [parts.slice(0, i).join(' '), _selector]
+    const matched = parts.slice(i).join(' ')
+    if (matches(element, matched)) {
+      return [unmatched, matched]
     }
   }
 
-  return [parts.join(' '), '']
+  return [selector, '']
+}
+
+/**
+ * @param {Function} matches
+ * @param {DOMElement} element
+ * @param {String} selector
+ * @param {String} combinator
+ * @param {Number} _depth
+ * @return {Boolean}
+ */
+function combinatorPreventsMatch (matches, element, selector, combinator, _depth) {
+  if (_depth === 0) {
+    return false
+  }
+
+  const {nodes, depth} = getElementsUsingCombinator(element, combinator, _depth)
+  return !nodes.some(node => {
+    return findMatchingPartOfSelector(matches, node, selector, depth)[1]
+  })
+}
+
+/**
+ * @param {DOMElement} element
+ * @param {String} combinator
+ * @param {Number} depth
+ * @return {Object}
+ */
+function getElementsUsingCombinator (element, combinator, depth) {
+  const nodes = []
+  let _depth = depth
+  if (combinator === '>') {
+    nodes.push(element.parentNode)
+    _depth = depth - 1
+  } else if (combinator === '+' || combinator === '~') {
+    let el = element
+    while ((el = el.previousElementSibling)) {
+      nodes.unshift(el)
+      if (combinator === '+') {
+        break
+      }
+    }
+  }
+
+  return {depth: _depth, nodes}
 }
 
 /**
@@ -97,5 +147,7 @@ function formatRule (selector, rule, options) {
 export {
   findRulesForElement,
   findMatchingPartOfSelector,
+  combinatorPreventsMatch,
+  getElementsUsingCombinator,
   formatRule
 }
