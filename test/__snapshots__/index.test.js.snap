@@ -1,0 +1,45 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`findMatches with different options should include cssText for each matching selector when that option is true 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [],
+      "matches": Array [
+        Object {
+          "cssText": "div { color: red; }",
+          "isPartialMatch": false,
+          "selector": "div",
+        },
+        Object {
+          "cssText": "div > div { color: blue; }",
+          "isPartialMatch": false,
+          "selector": "div > div",
+        },
+        Object {
+          "cssText": "div > div > div { color: green; }",
+          "isPartialMatch": true,
+          "selector": "div > div > div",
+        },
+      ],
+    },
+  ],
+  "matches": Array [
+    Object {
+      "cssText": "div { color: red; }",
+      "isPartialMatch": false,
+      "selector": "div",
+    },
+    Object {
+      "cssText": "div > div { color: blue; }",
+      "isPartialMatch": true,
+      "selector": "div > div",
+    },
+    Object {
+      "cssText": "div > div > div { color: green; }",
+      "isPartialMatch": true,
+      "selector": "div > div > div",
+    },
+  ],
+}
+`;

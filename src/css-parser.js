@@ -4,6 +4,8 @@ import {CSS_RULE_TYPES} from './constants'
 
 import {stringifySelectors} from './stringify'
 
+// TODO add standard linting to test files?
+
 /**
  * @param {String} html
  * @return {String}
@@ -100,5 +102,6 @@ async function findMatchesFromPage (styles, html, options) {
 }
 
 export {
+  createPage,
   findMatchesFromPage
 }

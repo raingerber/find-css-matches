@@ -6,7 +6,7 @@
  * @param {Number} depth
  * @return {Object}
  */
-function findRulesForElement (matches, rules, element, options, depth = 0) {
+function findRulesForElement (matches, rules, element, options, depth) {
   const result = {
     matches: rules.reduce((acc, rule) => {
       let hasMatch = false
@@ -36,9 +36,9 @@ function findRulesForElement (matches, rules, element, options, depth = 0) {
   }
 
   if (options.recursive === true) {
-    const _depth = depth + 1
+    const depthOfChildren = depth + 1
     result.children = Array.prototype.map.call(element.children, child => {
-      return findRulesForElement(matches, rules, child, options, _depth)
+      return findRulesForElement(matches, rules, child, options, depthOfChildren)
     })
   }
 
@@ -58,7 +58,7 @@ function findRulesForElement (matches, rules, element, options, depth = 0) {
  */
 function findMatchingPartOfSelector (matches, element, selector, depth) {
   const parts = selector.split(/\s+/)
-  for (let i = 0, part = parts[i]; i < parts.length; part = parts[++i]) {
+  for (let i = 0, part = parts[i]; part; part = parts[++i]) {
     const unmatched = parts.slice(0, i).join(' ')
     if (/[>+~]/.test(part)) {
       if (combinatorPreventsMatch(matches, element, unmatched, part, depth)) {
@@ -86,12 +86,12 @@ function findMatchingPartOfSelector (matches, element, selector, depth) {
  * @return {Boolean}
  */
 function combinatorPreventsMatch (matches, element, selector, combinator, _depth) {
-  if (_depth === 0) {
+  if (_depth < 1) {
     return false
   }
 
-  const {nodes, depth} = getElementsUsingCombinator(element, combinator, _depth)
-  return !nodes.some(node => {
+  const {elements, depth} = getElementsUsingCombinator(element, combinator, _depth)
+  return !elements.some(node => {
     return findMatchingPartOfSelector(matches, node, selector, depth)[1]
   })
 }
@@ -103,22 +103,22 @@ function combinatorPreventsMatch (matches, element, selector, combinator, _depth
  * @return {Object}
  */
 function getElementsUsingCombinator (element, combinator, depth) {
-  const nodes = []
-  let _depth = depth
+  const elements = []
+  let depthOfElements = depth
   if (combinator === '>') {
-    nodes.push(element.parentNode)
-    _depth = depth - 1
+    elements.push(element.parentNode)
+    depthOfElements--
   } else if (combinator === '+' || combinator === '~') {
     let el = element
     while ((el = el.previousElementSibling)) {
-      nodes.unshift(el)
+      elements.unshift(el)
       if (combinator === '+') {
         break
       }
     }
   }
 
-  return {depth: _depth, nodes}
+  return {depth: depthOfElements, elements}
 }
 
 /**

@@ -124,6 +124,8 @@ this does not really treat the html as a "fragment"
 
 in general, there's gonna be strange behavior when body and html are used at all
 
- */
+partial match where the parent also needs to have a partial match from the unmatched portion of the selector
+
+*/
 
 // impossible cases - where an ID is used already but the selector expects the ID somewhere else
