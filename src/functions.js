@@ -85,12 +85,12 @@ function findMatchingPartOfSelector (matches, element, selector, depth) {
  * @param {Number} _depth
  * @return {Boolean}
  */
-function combinatorPreventsMatch (matches, element, selector, combinator, _depth) {
-  if (_depth < 1) {
+function combinatorPreventsMatch (matches, element, selector, combinator, elementDepth) {
+  if (elementDepth < 1) {
     return false
   }
 
-  const {elements, depth} = getElementsUsingCombinator(element, combinator, _depth)
+  const {elements, depth} = getElementsUsingCombinator(element, combinator, elementDepth)
   return !elements.some(node => {
     return findMatchingPartOfSelector(matches, node, selector, depth)[1]
   })
