@@ -113,7 +113,6 @@ describe('findMatches', () => {
 
     return findMatches(styles, html, options).then(result => {
       // console.log(JSON.stringify(result, null, 2))
-      // expect(1).toBe(1)
       expect(result).toMatchSnapshot()
     })
 

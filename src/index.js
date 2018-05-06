@@ -1,12 +1,10 @@
 import {findMatchesFromPage} from './css-parser'
 
-// TODO add useFragment option
-
 const DEFAULT_OPTIONS = {
   cssText: false,
   recursive: true,
   findPartialMatches: true,
-  formatSelector: (a, b) => [a, b] // TODO pick this off the options so it doesn't get passed to evaluate?
+  formatSelector: (a, b) => [a, b]
 }
 
 /**

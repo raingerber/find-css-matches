@@ -1,3 +1,47 @@
+/* eslint-disable no-multi-spaces */
+
+/**
+ * @param {StyleSheetList} sheets
+ * @return {Array<CSSRule>}
+ */
+function getCssRules (sheets) {
+  const CSS_RULE_TYPES = [
+    'UNKNOWN_RULE',                // 0
+    'STYLE_RULE',                  // 1
+    'CHARSET_RULE',                // 2
+    'IMPORT_RULE',                 // 3
+    'MEDIA_RULE',                  // 4
+    'FONT_FACE_RULE',              // 5
+    'PAGE_RULE',                   // 6
+    'KEYFRAMES_RULE',              // 7
+    'KEYFRAME_RULE',               // 8
+    null,                          // 9
+    'NAMESPACE_RULE',              // 10
+    'COUNTER_STYLE_RULE',          // 11
+    'SUPPORTS_RULE',               // 12
+    'DOCUMENT_RULE',               // 13
+    'FONT_FEATURE_VALUES_RULE',    // 14
+    'VIEWPORT_RULE',               // 15
+    'REGION_STYLE_RULE'            // 16
+  ]
+
+  let rules = []
+  for (let {cssRules} of sheets) {
+    for (let rule of cssRules) {
+      switch (CSS_RULE_TYPES[rule.type]) {
+        case 'STYLE_RULE':
+          rules.push(rule)
+          break
+        case 'MEDIA_RULE':
+          rules.push(...rule.cssRules)
+          break
+      }
+    }
+  }
+
+  return rules
+}
+
 /**
  * @param {Function} matches
  * @param {Array<CSSRule>} rules
@@ -58,7 +102,23 @@ function findRulesForElement (matches, rules, element, options, depth) {
  */
 function findMatchingPartOfSelector (matches, element, selector, depth) {
   const parts = selector.split(/\s+/)
-  for (let i = 0, part = parts[i]; part; part = parts[++i]) {
+  // TODO this might only work/be necessary when
+  // the element is a child of the <body> tag
+  // in any case, add an explanation for this logic
+  // let i = -1
+  let i = 0
+  if (depth === 0) {
+    i = parts.length - 1
+    for (; i > -1; i--) {
+      if (parts[i] === '>') {
+        break
+      }
+    }
+
+    i = i === -1 ? 0 : i + 1
+  }
+
+  for (let part = parts[i]; part; part = parts[++i]) {
     const unmatched = parts.slice(0, i).join(' ')
     if (/[>+~]/.test(part)) {
       if (combinatorPreventsMatch(matches, element, unmatched, part, depth)) {
@@ -118,7 +178,7 @@ function getElementsUsingCombinator (element, combinator, depth) {
     }
   }
 
-  return {depth: depthOfElements, elements}
+  return {elements, depth: depthOfElements}
 }
 
 /**
@@ -145,6 +205,7 @@ function formatRule (selector, rule, options) {
 }
 
 export {
+  getCssRules,
   findRulesForElement,
   findMatchingPartOfSelector,
   combinatorPreventsMatch,

@@ -16,8 +16,8 @@ const {
 
 // TODO use a helper for generating the DOM html
 
-cases('findRulesForElement', opts => {
-  const dom = new JSDOM(`
+function getDom () {
+  return new JSDOM(`
     <div class="container">
       <div class="child-1">one</div>
       Text node to ignore
@@ -26,6 +26,10 @@ cases('findRulesForElement', opts => {
       <div class="child-3">three</div>
     </div>
   `)
+}
+
+cases('findRulesForElement', opts => {
+  const dom = getDom()
   const element = dom.window.document.querySelector('.container')
   const matches = Function.call.bind(dom.window.Element.prototype.matches)
   const rules = findRulesForElement(matches, opts.rules, element, opts.options, 1)
@@ -63,15 +67,7 @@ cases('findRulesForElement', opts => {
 
 // // TODO have a separate cases for isRoot vs child
 cases('findMatchingPartOfSelector', opts => {
-  const dom = new JSDOM(`
-    <div class="container">
-      <div class="child-1">one</div>
-      Text node to ignore
-      <div class="child-2">two</div>
-      Text node to ignore
-      <div class="child-3">three</div>
-    </div>
-  `)
+  const dom = getDom()
   const matches = Function.call.bind(dom.window.Element.prototype.matches)
   const element = dom.window.document.querySelector(opts.selector)
   const result = findMatchingPartOfSelector(matches, element, ...opts.args)
@@ -142,15 +138,7 @@ cases('findMatchingPartOfSelector', opts => {
 // TODO have more chained selectors? (that could go in the integration testing though)
 
 cases('getElementsUsingCombinator', opts => {
-  const dom = new JSDOM(`
-    <div class="container">
-      <div class="child-1">one</div>
-      Text node to ignore
-      <div class="child-2">two</div>
-      Text node to ignore
-      <div class="child-3">three</div>
-    </div>
-  `)
+  const dom = getDom()
   const element = dom.window.document.querySelector('.child-3')
   const {elements, depth} = getElementsUsingCombinator(element, ...opts.args)
   const classNames = elements.map(el => el.getAttribute('class'))
@@ -174,15 +162,7 @@ cases('getElementsUsingCombinator', opts => {
 }])
 
 cases('combinatorPreventsMatch', opts => {
-  const dom = new JSDOM(`
-    <div class="container">
-      <div class="child-1">one</div>
-      Text node to ignore
-      <div class="child-2">two</div>
-      Text node to ignore
-      <div class="child-3">three</div>
-    </div>
-  `)
+  const dom = getDom()
   const matches = Function.call.bind(dom.window.Element.prototype.matches)
   const element = dom.window.document.querySelector('.child-3')
   const result = combinatorPreventsMatch(matches, element, ...opts.args)
@@ -217,3 +197,41 @@ cases('combinatorPreventsMatch', opts => {
   args: ['.child-1', '~', 1],
   result: false
 }])
+
+cases('combinatorPreventsMatch', opts => {
+  const dom = getDom()
+  const matches = Function.call.bind(dom.window.Element.prototype.matches)
+  const element = dom.window.document.querySelector('.child-3')
+  const result = combinatorPreventsMatch(matches, element, ...opts.args)
+  expect(result).toBe(opts.result)
+}, [{
+  // TODO put the *not* cases second
+  name: 'always false when depth is less than 1',
+  args: ['.null', '>', 0],
+  result: false
+}, {
+  name: 'true for > when parent does *not* match the selector',
+  args: ['.null', '>', 1],
+  result: true
+}, {
+  name: 'false for > when parent does match the selector',
+  args: ['.container', '>', 1],
+  result: false
+}, {
+  name: 'true for + when previous sibling does *not* match the selector',
+  args: ['.null', '+', 1],
+  result: true
+}, {
+  name: 'false for + when previous sibling does match the selector',
+  args: ['.child-2', '+', 1],
+  result: false
+}, {
+  name: 'true for ~ when previous siblings do *not* match the selector',
+  args: ['.null', '~', 1],
+  result: true
+}, {
+  name: 'false for ~ when a previous sibling does match the selector',
+  args: ['.child-1', '~', 1],
+  result: false
+}])
+

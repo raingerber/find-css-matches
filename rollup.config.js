@@ -9,11 +9,18 @@ import * as functions from './src/functions'
 
 // keep in mind that Jest will automatically define NODE_ENV as test
 
+// ; rm __test__/index.js
+
+// TODO add babel or buble or something, for object spread for example
+
 const {TEST_BUILD} = process.env
 
 const compact = input => input.filter(item => item)
 
-// ; rm __test__/index.js
+// function functionToString (fn, ...args) {
+//   const argString = args.map(arg => JSON.stringify(arg)).join(',')
+//   return `(${fn.toString()})(${argString})`
+// }
 
 const config = [{
   plugins: compact([
@@ -27,6 +34,7 @@ const config = [{
             throw new Error(`[build error] The ${id} function is not defined.`)
           }
 
+          // TODO also find a way to move jsdoc over there?
           const str = new MagicString(fn.toString())
           str.indent(whitespace)
           return str.toString()
