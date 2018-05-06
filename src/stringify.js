@@ -15,7 +15,8 @@ function stringifySelectors ({matches, children}, options) {
       return {
         ...match,
         selector: match.selector.map(part => {
-          return options.formatSelector(...part).join(' ').trim()
+          const [unmatched, matched] = options.formatSelector(...part)
+          return `${unmatched} ${matched}`.trim().replace(/\s+/g, ' ')
         }).join(', ')
       }
     })

@@ -4,23 +4,7 @@ import {CSS_RULE_TYPES} from './constants'
 
 import {stringifySelectors} from './stringify'
 
-// TODO add standard linting to test files?
-
-/**
- * @param {String} html
- * @return {String}
- */
-function getElementQuery (html) {
-  // TODO what if there's a comment in the html?
-  const match = /<\s*([a-z]+)/i.exec(html)
-  if (!match) {
-    throw new Error('Input HTML does not contain a valid tag.')
-  }
-
-  const tagName = match[1].toLowerCase()
-  const selector = `${tagName}:first-of-type`
-  return selector
-}
+// TODO add standard linting for test files?
 
 /**
  * @param {Browser} browser
@@ -101,7 +85,24 @@ async function findMatchesFromPage (styles, html, options) {
   return selectors
 }
 
+/**
+ * @param {String} html
+ * @return {String}
+ */
+function getElementQuery (html) {
+  const htmlWithNoComments = html.replace(/<!--[\s\S]*?-->/g, '')
+  const match = /^\s*<\s*([a-z]+)/i.exec(htmlWithNoComments)
+  if (!match) {
+    throw new Error('Input HTML does not contain a valid tag.')
+  }
+
+  const tagName = match[1].toLowerCase()
+  const selector = `${tagName}:first-of-type`
+  return selector
+}
+
 export {
   createPage,
-  findMatchesFromPage
+  findMatchesFromPage,
+  getElementQuery
 }

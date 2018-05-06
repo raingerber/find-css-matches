@@ -7,6 +7,8 @@ import MagicString from 'magic-string'
 import pkg from './package.json'
 import * as functions from './src/functions'
 
+// keep in mind that Jest will automatically define NODE_ENV as test
+
 const {TEST_BUILD} = process.env
 
 const compact = input => input.filter(item => item)

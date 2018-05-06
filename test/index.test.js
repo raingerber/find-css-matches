@@ -1,7 +1,6 @@
 /* eslint-env jest */
 
-// TODO add test fixtures
-// TODO how to handle empty / invalid html strings?
+// TODO use <template> tag
 const {findMatches} = require('../__test__/index')
 
 const formatSelector = (a, b) => [a, b ? `???${b}???` : b]
@@ -38,15 +37,17 @@ describe('findMatches with different options', () => {
     const options = {
       recursive: false
     }
+
     return findMatches(styles, html, options).then(result => {
       expect(Object.keys(result)).toEqual(['matches']) // no "children" key
     })
   })
-  it.only('should include cssText for each matching selector when that option is true', () => {
+  it('should include cssText for each matching selector when that option is true', () => {
     const options = {
       recursive: true,
       cssText: true
     }
+
     return findMatches(styles, html, options).then(result => {
       // should have correct cssText properties for each object in the matches arrays
       expect(result).toMatchSnapshot()
@@ -58,6 +59,7 @@ describe('findMatches with different options', () => {
       recursive: true,
       findPartialMatches: false
     }
+
     return findMatches(styles, html, options).then(result => {
       expect(result).toEqual({
         matches: [
@@ -108,10 +110,17 @@ describe('findMatches', () => {
         </div>
       </div>
     `
+
     return findMatches(styles, html, options).then(result => {
       // console.log(JSON.stringify(result, null, 2))
+      // expect(1).toBe(1)
       expect(result).toMatchSnapshot()
     })
+
+    // return findMatches(styles, html, options).then(result => {
+    //   // console.log(JSON.stringify(result, null, 2))
+    //   expect(result).toMatchSnapshot()
+    // })
   })
 })
 

@@ -14,28 +14,54 @@ const {
 // and does not need to test as many scenarios as the ones for findMatchingPartOfSelector
 // findRulesForElement
 
-function __findMatchingPartOfSelector (matches, element, selector, depth) {
-  const parts = selector.split(/\s+/)
-  for (let i = 0, part = parts[i]; i < parts.length; part = parts[++i]) {
-    const unmatched = parts.slice(0, i).join(' ')
-    if (/[>+~]/.test(part)) {
-      if (combinatorPreventsMatch(matches, element, unmatched, part, depth)) {
-        break
-      }
+// TODO use a helper for generating the DOM html
 
-      continue
-    }
-
-    const matched = parts.slice(i).join(' ')
-    if (matches(element, matched)) {
-      return [unmatched, matched]
-    }
+cases('findRulesForElement', opts => {
+  const dom = new JSDOM(`
+    <div class="container">
+      <div class="child-1">one</div>
+      Text node to ignore
+      <div class="child-2">two</div>
+      Text node to ignore
+      <div class="child-3">three</div>
+    </div>
+  `)
+  const element = dom.window.document.querySelector('.container')
+  const matches = Function.call.bind(dom.window.Element.prototype.matches)
+  const rules = findRulesForElement(matches, opts.rules, element, opts.options, 1)
+  // console.log(JSON.stringify(rules, null, 2))
+  expect(rules).toMatchSnapshot
+}, [{
+  rules: [{
+    selectorText: '.container, ul'
+  }, {
+    selectorText: 'ul, section .container'
+  }],
+  options: {
+    findPartialMatches: false,
+    recursive: false
+  },
+}, {
+  rules: [{
+    selectorText: '.container, ul'
+  }, {
+    selectorText: 'ul, section .container'
+  }],
+  options: {
+    findPartialMatches: true,
+    recursive: false
   }
+}, {
+  rules: [{
+    selectorText: 'section div > .child-2'
+  }],
+  options: {
+    findPartialMatches: true,
+    recursive: true
+  }
+}])
 
-  return [selector, '']
-}
-
-// TODO have a separate cases for isRoot vs child
+// // TODO have a separate cases for isRoot vs child
 cases('findMatchingPartOfSelector', opts => {
   const dom = new JSDOM(`
     <div class="container">

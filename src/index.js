@@ -1,10 +1,12 @@
 import {findMatchesFromPage} from './css-parser'
 
+// TODO add useFragment option
+
 const DEFAULT_OPTIONS = {
   cssText: false,
   recursive: true,
   findPartialMatches: true,
-  formatSelector: (a, b) => [a, b]
+  formatSelector: (a, b) => [a, b] // TODO pick this off the options so it doesn't get passed to evaluate?
 }
 
 /**
@@ -20,14 +22,3 @@ function findMatches (styles, html, userOptions) {
 }
 
 export {findMatches}
-
-// function elementUsesTagName (element, tagName) {
-//   return element.is(tagName) || !!element.querySelector(tagName)
-// }
-
-// function checkForSpecialTags (element) {
-//   const tagData = {
-//     html: elementUsesTagName(element, 'html'),
-//     body: elementUsesTagName(element, 'body')
-//   }
-// }
