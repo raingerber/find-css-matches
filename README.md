@@ -216,3 +216,5 @@ warn that it uses async / await
 */
 
 document all the new options (unmatched, matched, findPartialMatches)
+
+does not check if selectors are valid - i.e. body:not(body) > .class

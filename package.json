@@ -6,7 +6,8 @@
   "module": "dist/index.esm.js",
   "scripts": {
     "build": "rollup -c",
-    "test": "standard 'src/**/*.js' && rollup -c --environment TEST_BUILD && jest"
+    "test": "rollup -c --environment TEST_BUILD && jest",
+    "tester": "standard 'src/**/*.js' && rollup -c --environment TEST_BUILD && jest"
   },
   "keywords": [],
   "author": {
@@ -33,8 +34,7 @@
   "standard": {
     "ignore": [
       "dist",
-      "__test__",
-      "*.test.js"
+      "__test__"
     ]
   }
 }

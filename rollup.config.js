@@ -34,8 +34,12 @@ const config = [{
             throw new Error(`[build error] The ${id} function is not defined.`)
           }
 
-          // TODO also find a way to move jsdoc over there?
-          const str = new MagicString(fn.toString())
+          let str = fn.toString()
+          // if (!TEST_BUILD) {
+          //   str = str.replace(/[^\S\r\n]*\/\/\s+#if\sIS_REMOVE(.*)([\s\S]*?)\/\/\s#endif\r?\n?\r?\n?/, '')
+          // }
+
+          str = new MagicString(str)
           str.indent(whitespace)
           return str.toString()
         }
@@ -55,8 +59,7 @@ const config = [{
     {
       file: pkg.main,
       format: 'cjs'
-    },
-    {
+    }, {
       file: pkg.module,
       format: 'es'
     }

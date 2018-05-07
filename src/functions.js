@@ -1,4 +1,3 @@
-/* eslint-disable no-multi-spaces */
 
 /**
  * @param {StyleSheetList} sheets
@@ -6,23 +5,25 @@
  */
 function getCssRules (sheets) {
   const CSS_RULE_TYPES = [
-    'UNKNOWN_RULE',                // 0
-    'STYLE_RULE',                  // 1
-    'CHARSET_RULE',                // 2
-    'IMPORT_RULE',                 // 3
-    'MEDIA_RULE',                  // 4
-    'FONT_FACE_RULE',              // 5
-    'PAGE_RULE',                   // 6
-    'KEYFRAMES_RULE',              // 7
-    'KEYFRAME_RULE',               // 8
-    null,                          // 9
-    'NAMESPACE_RULE',              // 10
-    'COUNTER_STYLE_RULE',          // 11
-    'SUPPORTS_RULE',               // 12
-    'DOCUMENT_RULE',               // 13
-    'FONT_FEATURE_VALUES_RULE',    // 14
-    'VIEWPORT_RULE',               // 15
-    'REGION_STYLE_RULE'            // 16
+    /* eslint-disable no-multi-spaces */
+    'UNKNOWN_RULE',              // 0
+    'STYLE_RULE',                // 1
+    'CHARSET_RULE',              // 2
+    'IMPORT_RULE',               // 3
+    'MEDIA_RULE',                // 4
+    'FONT_FACE_RULE',            // 5
+    'PAGE_RULE',                 // 6
+    'KEYFRAMES_RULE',            // 7
+    'KEYFRAME_RULE',             // 8
+    null,                        // 9
+    'NAMESPACE_RULE',            // 10
+    'COUNTER_STYLE_RULE',        // 11
+    'SUPPORTS_RULE',             // 12
+    'DOCUMENT_RULE',             // 13
+    'FONT_FEATURE_VALUES_RULE',  // 14
+    'VIEWPORT_RULE',             // 15
+    'REGION_STYLE_RULE'          // 16
+    /* eslint-enable no-multi-spaces */
   ]
 
   let rules = []
@@ -58,10 +59,8 @@ function findRulesForElement (matches, rules, element, options, depth) {
         let parsed
         if (options.findPartialMatches) {
           parsed = findMatchingPartOfSelector(matches, element, part, depth)
-        } else if (matches(element, part)) {
-          parsed = ['', part]
         } else {
-          parsed = [part, '']
+          parsed = testIfSelectorIsMatch(matches, element, part)
         }
 
         if (parsed[1]) {
@@ -90,8 +89,22 @@ function findRulesForElement (matches, rules, element, options, depth) {
 }
 
 /**
+ * @param {Function} matches
+ * @param {DOMElement} element
+ * @param {String} selector
+ * @return {Array<String>}
+ */
+function testIfSelectorIsMatch (matches, element, selector) {
+  if (matches(element, selector)) {
+    return ['', selector]
+  }
+
+  return [selector, '']
+}
+
+/**
  * returns an array that contains 2 strings: [<unmatched>, <matched>]
- * joining the two strings with a space will produce the original selector
+ * joining the two strings with a space produces the original selector
  * if the <matched> string is empty, there was NO MATCH found
  * if neither string is empty, it was a partial match
  * @param {Function} matches
@@ -102,25 +115,20 @@ function findRulesForElement (matches, rules, element, options, depth) {
  */
 function findMatchingPartOfSelector (matches, element, selector, depth) {
   const parts = selector.split(/\s+/)
-  // TODO this might only work/be necessary when
-  // the element is a child of the <body> tag
-  // in any case, add an explanation for this logic
-  // let i = -1
-  let i = 0
-  if (depth === 0) {
-    i = parts.length - 1
-    for (; i > -1; i--) {
-      if (parts[i] === '>') {
-        break
-      }
-    }
 
-    i = i === -1 ? 0 : i + 1
-  }
+  for (let i = 0, part = parts[i]; part; part = parts[++i]) {
+    // TODO instead of body, it needs to be a regex that makes sure
+    // it's a tagName (i.e. it should be preceded by whitespace, or a combinator)
+    // are there cases where body could come inside parentheses though?
+    // if (parts[i + 1] === '>' && parts[i].includes('body')) {
+    //   continue
+    // }
 
-  for (let part = parts[i]; part; part = parts[++i]) {
     const unmatched = parts.slice(0, i).join(' ')
     if (/[>+~]/.test(part)) {
+      // the problem when depth > 0 is that part of the selector might still
+      // extend above the root
+      // explain this is for div > div > div matching the child in <div><div></div></div>
       if (combinatorPreventsMatch(matches, element, unmatched, part, depth)) {
         break
       }
@@ -146,10 +154,13 @@ function findMatchingPartOfSelector (matches, element, selector, depth) {
  * @return {Boolean}
  */
 function combinatorPreventsMatch (matches, element, selector, combinator, elementDepth) {
+  // return early for the root element of the user-provided html
   if (elementDepth < 1) {
     return false
   }
 
+  // this check only happens for child nodes, because we already know their
+  // parents and siblings (which are considered unknown for root elements)
   const {elements, depth} = getElementsUsingCombinator(element, combinator, elementDepth)
   return !elements.some(node => {
     return findMatchingPartOfSelector(matches, node, selector, depth)[1]
@@ -168,13 +179,12 @@ function getElementsUsingCombinator (element, combinator, depth) {
   if (combinator === '>') {
     elements.push(element.parentNode)
     depthOfElements--
-  } else if (combinator === '+' || combinator === '~') {
+  } else if (combinator === '+') {
+    elements.push(element.previousElementSibling)
+  } else if (combinator === '~') {
     let el = element
     while ((el = el.previousElementSibling)) {
       elements.unshift(el)
-      if (combinator === '+') {
-        break
-      }
     }
   }
 
@@ -207,6 +217,7 @@ function formatRule (selector, rule, options) {
 export {
   getCssRules,
   findRulesForElement,
+  testIfSelectorIsMatch,
   findMatchingPartOfSelector,
   combinatorPreventsMatch,
   getElementsUsingCombinator,

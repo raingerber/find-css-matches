@@ -1,51 +1,42 @@
 /* eslint-env jest */
 
-const {JSDOM} = require('jsdom')
+const puppeteer = require('puppeteer')
 
-const {
-  getCssRules
-} = require('../__test__/index')
+const {getElementQuery} = require('../__test__/index')
 
-describe('getCssRules', () => {
-  it('should return an array with each cssRule in order', () => {
-    const sheets = [{
-      cssRules: [{
-        type: 1,
-        cssText: 'one'
-      }, {
-        type: 4,
-        cssRules: [{
-          type: 1,
-          cssText: 'two'
-        }, {
-          type: 1,
-          cssText: 'three'
-        }]
-      }]
-    }, {
-      cssRules: [{
-        type: 1,
-        cssText: 'four'
-      }]
-    }]
-
-    expect(getCssRules(sheets)).toEqual([
-      {
-        type: 1,
-        cssText: 'one'
-      },
-      {
-        type: 1,
-        cssText: 'two'
-      },
-      {
-        type: 1,
-        cssText: 'three'
-      },
-      {
-        type: 1,
-        cssText: 'four'
-      }
-    ])
+describe('getElementQuery', () => {
+  let browser
+  async function getQuery (html, domHtml = html) {
+    browser = await puppeteer.launch()
+    const page = await browser.newPage()
+    await page.setContent(domHtml)
+    return getElementQuery(page, html)
+  }
+  afterEach(async () => {
+    await browser.close()
+  })
+  it('should return the first tagName from the string', async () => {
+    const tagName = await getQuery('<div><span></span></div>')
+    expect(tagName).toBe('div:first-of-type')
+  })
+  it('it should ignore html inside of comments', async () => {
+    const tagName = await getQuery('<!-- <body></body> --><div><span></span></div>')
+    expect(tagName).toBe('div:first-of-type')
+  })
+  it('it should throw when no tagName is found in the string', async () => {
+    return getQuery('')
+      .then(result => result)
+      .catch(result => {
+        expect(result).toBeInstanceOf(Error)
+        expect(result).toMatchSnapshot()
+      })
+  })
+  it('it should throw when the correct tagName is not found in the DOM', async () => {
+    return getQuery('<div><span></span></div>', '<span></span>')
+      .then(result => result)
+      .catch(result => {
+        expect(result).toBeInstanceOf(Error)
+        expect(result).toMatchSnapshot()
+      })
   })
 })

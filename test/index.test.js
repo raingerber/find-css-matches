@@ -1,6 +1,5 @@
 /* eslint-env jest */
 
-// TODO use <template> tag
 const {findMatches} = require('../__test__/index')
 
 const formatSelector = (a, b) => [a, b ? `???${b}???` : b]
@@ -27,6 +26,10 @@ describe('findMatches with different options', () => {
     }
     `
   }
+  // TODO important to have this test individually:
+  // div > div > div matching the child div
+  // since the first "div" extends above the defined html,
+  // but this is still going to be valid
   const html = `
     <div class="parent">
       <div class="child">
@@ -64,17 +67,17 @@ describe('findMatches with different options', () => {
       expect(result).toEqual({
         matches: [
           {
-            selector: "???div???"
+            selector: '???div???'
           }
         ],
         children: [
           {
             matches: [
               {
-                selector: "???div???"
+                selector: '???div???'
               },
               {
-                selector: "???div > div???"
+                selector: '???div > div???'
               }
             ],
             children: []
@@ -122,18 +125,3 @@ describe('findMatches', () => {
     // })
   })
 })
-
-/**
-
-what about this selector:
-
-body > div (or anything else that's relative to body or html)
-this does not really treat the html as a "fragment"
-
-in general, there's gonna be strange behavior when body and html are used at all
-
-partial match where the parent also needs to have a partial match from the unmatched portion of the selector
-
-*/
-
-// impossible cases - where an ID is used already but the selector expects the ID somewhere else

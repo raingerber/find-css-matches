@@ -2,8 +2,6 @@
 
 const {stringifySelectors} = require('../__test__/index')
 
-// TODO this probably isn't necessary - since it will be tested from other functions
-
 describe('stringifySelectors', () => {
   it('should stringify selector arrays without modifying other keys', () => {
     const input = {
@@ -35,7 +33,9 @@ describe('stringifySelectors', () => {
       }]
     }
     const options = {
-      formatSelector: (a, b) => [a, b]
+      formatSelector: (a, b) => {
+        return [a.trim() ? `?${a.trim()}?` : a, b.toUpperCase()]
+      }
     }
     const result = stringifySelectors(input, options)
     expect(result).toMatchSnapshot()

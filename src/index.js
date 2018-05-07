@@ -14,7 +14,15 @@ const DEFAULT_OPTIONS = {
  * @return {Promise<Object>}
  */
 function findMatches (styles, html, userOptions) {
-  const stylesArray = Array.isArray(styles) ? styles : [styles]
+  let stylesArray
+  if (Array.isArray(styles)) {
+    stylesArray = styles
+  } else if (typeof styles === 'string') {
+    stylesArray = [{content: styles}]
+  } else {
+    stylesArray = [styles]
+  }
+
   const options = Object.assign({}, DEFAULT_OPTIONS, userOptions)
   return findMatchesFromPage(stylesArray, html, options)
 }

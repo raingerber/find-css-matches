@@ -23,9 +23,10 @@ async function createPage (browser, styles, html) {
  * @param {Page} page
  * @param {String} html
  * @return {String}
+ * @throws if the string does not contain an HTML tag,
+ *         or the tagName is not found in the given page
  */
 async function getElementQuery (page, html) {
-  // TODO add back the tests for this function (and test it with "page")
   const htmlWithNoComments = html.replace(/<!--[\s\S]*?-->/g, '')
   const match = /^\s*<\s*([a-z]+)/i.exec(htmlWithNoComments)
   if (match) {
@@ -48,6 +49,8 @@ function findMatchingRules (elementQuery, options) {
   // STUB:getCssRules
 
   // STUB:findRulesForElement
+
+  // STUB:testIfSelectorIsMatch
 
   // STUB:findMatchingPartOfSelector
 
@@ -80,13 +83,14 @@ async function findMatchesFromPage (styles, html, options) {
     const page = await createPage(browser, styles, html)
     const elementQuery = await getElementQuery(page, html)
     selectors = await page.evaluate(findMatchingRules, elementQuery, options)
+    selectors = stringifySelectors(selectors, options)
   } catch (error) {
     browser.close()
     throw error
   }
 
   browser.close()
-  return stringifySelectors(selectors, options)
+  return selectors
 }
 
 export {
