@@ -31,6 +31,7 @@ async function getElementQuery (page, html) {
   const match = /^\s*<\s*([a-z]+)/i.exec(htmlWithNoComments)
   if (match) {
     const tagName = `${match[1].toLowerCase()}:first-of-type`
+    // TODO is this really necessary? when would it happen?
     if (await page.evaluate(`!!document.querySelector('${tagName}')`)) {
       return tagName
     }
@@ -64,7 +65,24 @@ function findMatchingRules (elementQuery, options) {
 
   // eslint-disable-next-line no-undef
   const rules = getCssRules(document.styleSheets)
-  const element = document.querySelector(elementQuery)
+  let element = document.querySelector(elementQuery)
+  element.closest = function closest (selector) {
+    let el = this
+    while (el) {
+      if (el.matches(selector)) {
+        return el
+      }
+
+      el = el.parentElement
+    }
+  }
+
+  if (element.closest('body')) {
+    // we don't make assumptions about the position
+    // of the element in the DOM - so, for example,
+    // we don't want "body > *" to be a full match
+    element = element.parentElement.removeChild(element)
+  }
 
   // eslint-disable-next-line no-undef
   return findRulesForElement(matches, rules, element, options, 0)

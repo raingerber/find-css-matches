@@ -19,11 +19,7 @@ describe('getElementQuery', () => {
     const tagName = await getQuery('<div><span></span></div>')
     expect(tagName).toBe('div:first-of-type')
   })
-  it('it should ignore html inside of comments', async () => {
-    const tagName = await getQuery('<!-- <body></body> --><div><span></span></div>')
-    expect(tagName).toBe('div:first-of-type')
-  })
-  it('it should throw when no tagName is found in the string', async () => {
+  it('should throw when no tagName is found in the string', async () => {
     return getQuery('')
       .then(result => result)
       .catch(result => {
@@ -31,7 +27,7 @@ describe('getElementQuery', () => {
         expect(result).toMatchSnapshot()
       })
   })
-  it('it should throw when the correct tagName is not found in the DOM', async () => {
+  it('should throw when the tagName selector is not found in the DOM', async () => {
     return getQuery('<div><span></span></div>', '<span></span>')
       .then(result => result)
       .catch(result => {

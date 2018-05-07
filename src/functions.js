@@ -115,21 +115,11 @@ function testIfSelectorIsMatch (matches, element, selector) {
  */
 function findMatchingPartOfSelector (matches, element, selector, depth) {
   const parts = selector.split(/\s+/)
-
   for (let i = 0, part = parts[i]; part; part = parts[++i]) {
-    // TODO instead of body, it needs to be a regex that makes sure
-    // it's a tagName (i.e. it should be preceded by whitespace, or a combinator)
-    // are there cases where body could come inside parentheses though?
-    // if (parts[i + 1] === '>' && parts[i].includes('body')) {
-    //   continue
-    // }
-
-    const unmatched = parts.slice(0, i).join(' ')
     if (/[>+~]/.test(part)) {
-      // the problem when depth > 0 is that part of the selector might still
-      // extend above the root
+      // the problem when depth > 0 is that part of the selector might still extend above the root
       // explain this is for div > div > div matching the child in <div><div></div></div>
-      if (combinatorPreventsMatch(matches, element, unmatched, part, depth)) {
+      if (combinatorPreventsMatch(matches, element, parts, i, depth)) {
         break
       }
 
@@ -138,6 +128,7 @@ function findMatchingPartOfSelector (matches, element, selector, depth) {
 
     const matched = parts.slice(i).join(' ')
     if (matches(element, matched)) {
+      const unmatched = parts.slice(0, i).join(' ')
       return [unmatched, matched]
     }
   }
@@ -148,23 +139,44 @@ function findMatchingPartOfSelector (matches, element, selector, depth) {
 /**
  * @param {Function} matches
  * @param {DOMElement} element
- * @param {String} selector
- * @param {String} combinator
- * @param {Number} _depth
+ * @param {Array<String>} parts
+ * @param {Number} index - index of the combinator in question
+ * @param {Number} elementDepth
  * @return {Boolean}
  */
-function combinatorPreventsMatch (matches, element, selector, combinator, elementDepth) {
-  // return early for the root element of the user-provided html
+function combinatorPreventsMatch (matches, element, parts, index, elementDepth) {
   if (elementDepth < 1) {
     return false
   }
 
-  // this check only happens for child nodes, because we already know their
-  // parents and siblings (which are considered unknown for root elements)
-  const {elements, depth} = getElementsUsingCombinator(element, combinator, elementDepth)
-  return !elements.some(node => {
-    return findMatchingPartOfSelector(matches, node, selector, depth)[1]
-  })
+  // return false if there's a descendent combinator,
+  // which is signified by two consecutive elements
+  // where neither of them are > + or ~ combinators
+  for (let i = index + 1; i < parts.length - 1; i++) {
+    if (/[>+~]/.test(parts[i + 1])) {
+      i++
+    } else {
+      return false
+    }
+  }
+
+  // when the selector has enough ">" combinators, we
+  // know it has the "length" to reach the element
+  // even if it's farther up in the dom tree
+  let depthDiff = elementDepth
+  for (let i = index + 2; i < parts.length; i++) {
+    if (parts[i] === '>') {
+      depthDiff--
+    }
+  }
+
+  if (depthDiff < 1) {
+    return false
+  }
+
+  const selector = parts.slice(0, index).join(' ')
+  const {elements, depth} = getElementsUsingCombinator(element, parts[index], elementDepth)
+  return !elements.some(node => findMatchingPartOfSelector(matches, node, selector, depth)[1])
 }
 
 /**
