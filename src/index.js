@@ -7,6 +7,22 @@ const DEFAULT_OPTIONS = {
   formatSelector: (a, b) => [a, b]
 }
 
+// TODO export normalizeStyles + add tests
+
+/**
+ * @param {Array|String|Object} styles
+ * @return {Array<Object>}
+ */
+function normalizeStyles (styles) {
+  if (Array.isArray(styles)) {
+    return styles
+  } else if (typeof styles === 'string') {
+    return [{content: styles}]
+  }
+
+  return [styles]
+}
+
 /**
  * @param {Object|Array<Object>} styles
  * @param {String} html
@@ -14,17 +30,9 @@ const DEFAULT_OPTIONS = {
  * @return {Promise<Object>}
  */
 function findMatches (styles, html, userOptions) {
-  let stylesArray
-  if (Array.isArray(styles)) {
-    stylesArray = styles
-  } else if (typeof styles === 'string') {
-    stylesArray = [{content: styles}]
-  } else {
-    stylesArray = [styles]
-  }
-
+  const stylesArray = normalizeStyles(styles)
   const options = Object.assign({}, DEFAULT_OPTIONS, userOptions)
   return findMatchesFromPage(stylesArray, html, options)
 }
 
-export {findMatches}
+export {normalizeStyles, findMatches}

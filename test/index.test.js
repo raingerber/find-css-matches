@@ -1,6 +1,6 @@
 /* eslint-env jest */
 
-const {findMatches} = require('../__test__/index')
+const {normalizeStyles, findMatches} = require('../__test__/index')
 
 const formatSelector = (a, b) => [a, b ? `???${b}???` : b]
 
@@ -12,24 +12,31 @@ should ignore partial matches when options.findPartialMatches === false (make it
 
 **/
 
+// TODO test with passing a string / array / object as styles (maybe have a normalizeStyles?)
+// TODO add css with media queries in them
+
+// TODO - bother testing this?
+// describe('normalizeStyles', () => {
+//   it('should resolve a string', () => {
+
+//   })
+// })
+
 describe('findMatches with different options', () => {
   const styles = {
     content: `
-    div {
-      color: red;
-    }
-    div > div {
-      color: blue;
-    }
-    div > div > div {
-      color: green;
-    }
+      div {
+        color: red;
+      }
+      div > div {
+        color: blue;
+      }
+      div > div > div {
+        color: green;
+      }
     `
   }
-  // TODO important to have this test individually:
-  // div > div > div matching the child div
-  // since the first "div" extends above the defined html,
-  // but this is still going to be valid
+
   const html = `
     <div class="parent">
       <div class="child">
