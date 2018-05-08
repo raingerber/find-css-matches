@@ -51,6 +51,8 @@ function findMatchingRules (elementQuery, options) {
 
   // STUB:combinatorPreventsMatch
 
+  // STUB:selectorHasDescendentCombinator
+
   // STUB:getElementsUsingCombinator
 
   // STUB:formatRule
@@ -79,10 +81,10 @@ function findMatchingRules (elementQuery, options) {
  * @return {Object}
  */
 async function findMatchesFromPage (styles, html, options) {
+  const elementQuery = getElementQuery(html)
   const browser = await puppeteer.launch()
   let selectors
   try {
-    const elementQuery = getElementQuery(html)
     const page = await createPage(browser, styles, html)
     selectors = await page.evaluate(findMatchingRules, elementQuery, options)
     selectors = stringifySelectors(selectors, options)

@@ -39,7 +39,7 @@ describe('findMatches', () => {
     const result = await findMatches(styles, html, options)
     expect(result).toMatchSnapshot()
   })
-  it('should ignore partial matches when findPartialMatches is false', async () => {
+  it('should ignore partial matches when options.findPartialMatches is false', async () => {
     const options = {
       formatSelector,
       recursive: true,
@@ -48,7 +48,7 @@ describe('findMatches', () => {
     const result = await findMatches(styles, html, options)
     expect(result).toMatchSnapshot()
   })
-  it('should include partial matches when findPartialMatches is true', async () => {
+  it('should include partial matches when options.findPartialMatches is true', async () => {
     const options = {
       formatSelector,
       recursive: true,
@@ -57,7 +57,6 @@ describe('findMatches', () => {
     const result = await findMatches(styles, html, options)
     expect(result).toMatchSnapshot()
   })
-  // this works because elements are removed from the DOM before being tested
   it('should not return "body >" inside a full match', async () => {
     const options = {
       formatSelector,

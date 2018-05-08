@@ -117,6 +117,7 @@ function findMatchingPartOfSelector (matches, element, selector, depth) {
   const parts = selector.split(/\s+/)
   for (let i = 0, part = parts[i]; part; part = parts[++i]) {
     if (/[>+~]/.test(part)) {
+      // TODO
       // the problem when depth > 0 is that part of the selector might still extend above the root
       // explain this is for div > div > div matching the child in <div><div></div></div>
       if (combinatorPreventsMatch(matches, element, parts, i, depth)) {
@@ -149,21 +150,24 @@ function combinatorPreventsMatch (matches, element, parts, index, elementDepth) 
     return false
   }
 
-  // return false if there's a descendent combinator,
-  // which is signified by two consecutive elements
-  // where neither of them are > + or ~ combinators
-  for (let i = index + 1; i < parts.length - 1; i++) {
-    if (/[>+~]/.test(parts[i + 1])) {
-      i++
-    } else {
-      return false
-    }
+  if (selectorHasDescendentCombinator(parts, index)) {
+    return false
   }
 
-  // when the selector has enough ">" combinators, we
-  // know it has the "length" to reach the element
-  // even if it's farther up in the dom tree
+  /*
+  if we're testing selectors against the element at depth 2
+  the following selector is a potential match, because
+  it has enough > combinators to reach that depth
+
+  div > div > div { ... }
+
+  <div depth="0" />
+    <div depth="1" />
+      <div depth="2" />
+  */
   let depthDiff = elementDepth
+  // combinators won't appear consecutively,
+  // so we can start the search at index + 2
   for (let i = index + 2; i < parts.length; i++) {
     if (parts[i] === '>') {
       depthDiff--
@@ -177,6 +181,28 @@ function combinatorPreventsMatch (matches, element, parts, index, elementDepth) 
   const selector = parts.slice(0, index).join(' ')
   const {elements, depth} = getElementsUsingCombinator(element, parts[index], elementDepth)
   return !elements.some(node => findMatchingPartOfSelector(matches, node, selector, depth)[1])
+}
+
+/**
+ * if index is -1, search the entire selector
+ * otherwise, begin searching at the given index,
+ * but in that case parts[i] must be a combinator
+ * @param {Array<String>} parts
+ * @param {Number} index
+ * @return {Boolean}
+ */
+function selectorHasDescendentCombinator (parts, index) {
+  for (let i = index + 1; i < parts.length - 1; i++) {
+    // descendent combinators are implied when
+    // 2 consecutive elements are not > + or ~
+    if (/[>+~]/.test(parts[i + 1])) {
+      i++
+    } else {
+      return true
+    }
+  }
+
+  return false
 }
 
 /**
@@ -232,6 +258,7 @@ export {
   testIfSelectorIsMatch,
   findMatchingPartOfSelector,
   combinatorPreventsMatch,
+  selectorHasDescendentCombinator,
   getElementsUsingCombinator,
   formatRule
 }

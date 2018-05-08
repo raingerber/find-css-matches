@@ -9,6 +9,7 @@ const {
   testIfSelectorIsMatch,
   findMatchingPartOfSelector,
   combinatorPreventsMatch,
+  selectorHasDescendentCombinator,
   getElementsUsingCombinator,
   formatRule
 } = require('../__test__/index')
@@ -72,7 +73,6 @@ cases('findRulesForElement', opts => {
     </div>
   `
   const {matches, element} = createDom(html, '.container')
-  // findRulesForElement(matches, rules, element, options, depth)
   const rules = findRulesForElement(matches, opts.rules, element, opts.options, 0)
   expect(rules).toMatchSnapshot()
 }, [{
@@ -209,8 +209,6 @@ cases('findMatchingPartOfSelector', opts => {
   result: ['.null ~ .child-3', '']
 }])
 
-// TODO add the argument list for these functions that are being tested
-
 // NOTE that many of the selectors tested here are NOT matches,
 // but this tests an intermediate check before the selector can
 // be disqualified (so, we're testing to avoid false negatives)
@@ -229,7 +227,7 @@ cases('combinatorPreventsMatch', opts => {
   expect(result).toBe(opts.result)
 }, [{
   name: 'false when depth is less than 1',
-  args: [null, 0, 0], // index, depth
+  args: [null, 0, 0], // parts, index, depth
   result: false
 }, {
   name: 'false when the array contains enough ">" combinators',
@@ -264,6 +262,31 @@ cases('combinatorPreventsMatch', opts => {
   name: 'true for ~ when previous siblings do *not* match the selector',
   args: [['.null', '~', '.child-3'], 1, 1],
   result: true
+}])
+
+cases('selectorHasDescendentCombinator', opts => {
+  const result = selectorHasDescendentCombinator(opts.selector, opts.index)
+  expect(result).toBe(opts.result)
+}, [{
+  name: 'true case where index starts at -1',
+  selector: ['a', '>', 'b', 'c'],
+  index: -1,
+  result: true
+}, {
+  name: 'false case where index starts at -1',
+  selector: ['a', '>', 'b', '>', 'c'],
+  index: -1,
+  result: false
+}, {
+  name: 'true case where index starts with a known combinator',
+  selector: ['a', '>', 'b', '~', 'c', 'd'],
+  index: 1,
+  result: true
+}, {
+  name: 'false case where index starts with a known combinator',
+  selector: ['a', '>', 'b', '~', 'c', '+', 'd'],
+  index: 1,
+  result: false
 }])
 
 cases('getElementsUsingCombinator', opts => {

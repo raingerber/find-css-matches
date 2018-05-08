@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`findMatches should ignore partial matches when findPartialMatches is false 1`] = `
+exports[`findMatches should ignore partial matches when options.findPartialMatches is false 1`] = `
 Object {
   "children": Array [
     Object {
@@ -67,7 +67,7 @@ Object {
 }
 `;
 
-exports[`findMatches should include partial matches when findPartialMatches is true 1`] = `
+exports[`findMatches should include partial matches when options.findPartialMatches is true 1`] = `
 Object {
   "children": Array [
     Object {
