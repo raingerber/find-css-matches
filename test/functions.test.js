@@ -72,17 +72,10 @@ cases('findRulesForElement', opts => {
     </div>
   `
   const {matches, element} = createDom(html, '.container')
-  const rules = findRulesForElement(matches, opts.rules, element, opts.options, 1)
+  // findRulesForElement(matches, rules, element, options, depth)
+  const rules = findRulesForElement(matches, opts.rules, element, opts.options, 0)
   expect(rules).toMatchSnapshot()
 }, [{
-//   name: ''
-//   rules: [
-
-//   ],
-//   options: {
-
-//   }
-// }, {
   name: 'should respect options.findPartialMatches and options.recursive when they are false',
   rules: [{
     selectorText: 'div, ul' // full match, so it should be returned
@@ -94,7 +87,7 @@ cases('findRulesForElement', opts => {
     recursive: false
   }
 }, {
-  name: 'should include partial matches when options.findPartialMatches is true',
+  name: 'should include both full and partial matches when options.findPartialMatches is true',
   rules: [{
     selectorText: 'div.container, ul' // full match
   }, {
@@ -107,7 +100,7 @@ cases('findRulesForElement', opts => {
 }, {
   name: 'should include matching children when options.recursive is true',
   rules: [{
-    selectorText: 'div' // full match for both the parent and the children
+    selectorText: '.absent-parent > div' // partial match for the parent
   }, {
     selectorText: 'section div > .child-2' // partial match for one of the children
   }],
@@ -191,15 +184,6 @@ cases('findMatchingPartOfSelector', opts => {
   args: ['.could-exist div > .container > .child-3 > .grandchild-1', 2],
   result: ['.could-exist div >', '.container > .child-3 > .grandchild-1']
 }, {
-  // <div class="container">
-  //   <div class="child-1">xxx</div>
-  //   Text node to ignore
-  //   <div class="child-2">yyy</div>
-  //   Text node to ignore
-  //   <div class="child-3">
-  //     <div class="grandchild-1">zzz</div>
-  //   </div>
-  // </div>
   name: 'partial match for child element #4',
   selector: '.grandchild-1',
   args: ['#a .b > .c ~ .d .grandchild-1', 2],

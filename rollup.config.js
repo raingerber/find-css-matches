@@ -7,6 +7,8 @@ import MagicString from 'magic-string'
 import pkg from './package.json'
 import * as functions from './src/functions'
 
+// TODO remove comments in the build
+
 // keep in mind that Jest will automatically define NODE_ENV as test
 
 // ; rm __test__/index.js
@@ -35,10 +37,6 @@ const config = [{
           }
 
           let str = fn.toString()
-          // if (!TEST_BUILD) {
-          //   str = str.replace(/[^\S\r\n]*\/\/\s+#if\sIS_REMOVE(.*)([\s\S]*?)\/\/\s#endif\r?\n?\r?\n?/, '')
-          // }
-
           str = new MagicString(str)
           str.indent(whitespace)
           return str.toString()

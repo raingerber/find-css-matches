@@ -1,0 +1,187 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`findMatches should ignore partial matches when findPartialMatches is false 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [],
+      "matches": Array [
+        Object {
+          "selector": "???div???",
+        },
+        Object {
+          "selector": "???div > div???",
+        },
+      ],
+    },
+  ],
+  "matches": Array [
+    Object {
+      "selector": "???div???",
+    },
+  ],
+}
+`;
+
+exports[`findMatches should include cssText for each matching selector when that option is true 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [],
+      "matches": Array [
+        Object {
+          "cssText": "div { color: red; }",
+          "isPartialMatch": false,
+          "selector": "div",
+        },
+        Object {
+          "cssText": "div > div { color: blue; }",
+          "isPartialMatch": false,
+          "selector": "div > div",
+        },
+        Object {
+          "cssText": "div > div > div { color: green; }",
+          "isPartialMatch": true,
+          "selector": "div > div > div",
+        },
+      ],
+    },
+  ],
+  "matches": Array [
+    Object {
+      "cssText": "div { color: red; }",
+      "isPartialMatch": false,
+      "selector": "div",
+    },
+    Object {
+      "cssText": "div > div { color: blue; }",
+      "isPartialMatch": true,
+      "selector": "div > div",
+    },
+    Object {
+      "cssText": "div > div > div { color: green; }",
+      "isPartialMatch": true,
+      "selector": "div > div > div",
+    },
+  ],
+}
+`;
+
+exports[`findMatches should include partial matches when findPartialMatches is true 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [],
+      "matches": Array [
+        Object {
+          "isPartialMatch": false,
+          "selector": "???div???",
+        },
+        Object {
+          "isPartialMatch": false,
+          "selector": "???div > div???",
+        },
+        Object {
+          "isPartialMatch": true,
+          "selector": "div > ???div > div???",
+        },
+      ],
+    },
+  ],
+  "matches": Array [
+    Object {
+      "isPartialMatch": false,
+      "selector": "???div???",
+    },
+    Object {
+      "isPartialMatch": true,
+      "selector": "div > ???div???",
+    },
+    Object {
+      "isPartialMatch": true,
+      "selector": "div > div > ???div???",
+    },
+  ],
+}
+`;
+
+exports[`findMatches should not return "body >" inside a full match 1`] = `
+Object {
+  "matches": Array [
+    Object {
+      "isPartialMatch": true,
+      "selector": "body > ???*???",
+    },
+  ],
+}
+`;
+
+exports[`findMatches should work for a complex bit of html and css 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            Object {
+              "children": Array [],
+              "matches": Array [
+                Object {
+                  "isPartialMatch": true,
+                  "mediaText": "(max-width: 500px)",
+                  "selector": ".class1 > .class2 > ???section > div > * > li:first-of-type???",
+                },
+                Object {
+                  "isPartialMatch": true,
+                  "mediaText": "(max-width: 500px)",
+                  "selector": ".class1 > class2 ???li:first-of-type???",
+                },
+              ],
+            },
+            Object {
+              "children": Array [],
+              "matches": Array [
+                Object {
+                  "isPartialMatch": true,
+                  "selector": "html.namaste ???li:first-of-type ~ li???",
+                },
+              ],
+            },
+            Object {
+              "children": Array [],
+              "matches": Array [
+                Object {
+                  "isPartialMatch": true,
+                  "selector": "html.namaste ???li:first-of-type ~ li???",
+                },
+              ],
+            },
+          ],
+          "matches": Array [
+            Object {
+              "isPartialMatch": false,
+              "selector": "???.container???",
+            },
+          ],
+        },
+      ],
+      "matches": Array [],
+    },
+  ],
+  "matches": Array [
+    Object {
+      "isPartialMatch": false,
+      "selector": "???.container???",
+    },
+    Object {
+      "isPartialMatch": true,
+      "selector": ".sibling ~ ???section???",
+    },
+    Object {
+      "isPartialMatch": true,
+      "mediaText": "(max-width: 1000px)",
+      "selector": "div[data-gloop=\\"true\\"] > ???*???",
+    },
+  ],
+}
+`;

@@ -20,21 +20,15 @@ async function createPage (browser, styles, html) {
 }
 
 /**
- * @param {Page} page
  * @param {String} html
  * @return {String}
- * @throws if the string does not contain an HTML tag,
- *         or the tagName is not found in the given page
+ * @throws if the string does not contain an HTML tag
  */
-async function getElementQuery (page, html) {
+function getElementQuery (html) {
   const htmlWithNoComments = html.replace(/<!--[\s\S]*?-->/g, '')
   const match = /^\s*<\s*([a-z]+)/i.exec(htmlWithNoComments)
   if (match) {
-    const tagName = `${match[1].toLowerCase()}:first-of-type`
-    // TODO is this really necessary? when would it happen?
-    if (await page.evaluate(`!!document.querySelector('${tagName}')`)) {
-      return tagName
-    }
+    return `${match[1].toLowerCase()}:first-of-type`
   }
 
   throw new Error('Input HTML does not contain a valid tag.')
@@ -66,23 +60,13 @@ function findMatchingRules (elementQuery, options) {
   // eslint-disable-next-line no-undef
   const rules = getCssRules(document.styleSheets)
   let element = document.querySelector(elementQuery)
-  element.closest = function closest (selector) {
-    let el = this
-    while (el) {
-      if (el.matches(selector)) {
-        return el
-      }
 
-      el = el.parentElement
-    }
-  }
-
-  if (element.closest('body')) {
-    // we don't make assumptions about the position
-    // of the element in the DOM - so, for example,
-    // we don't want "body > *" to be a full match
-    element = element.parentElement.removeChild(element)
-  }
+  // we don't make assumptions about the position
+  // of the element in the DOM - so, for example,
+  // we don't want "body > *" to be a full match;
+  // however, a documentFragment will not render
+  // html and body tags, so we render in the DOM
+  element = element.parentElement.removeChild(element)
 
   // eslint-disable-next-line no-undef
   return findRulesForElement(matches, rules, element, options, 0)
@@ -98,8 +82,8 @@ async function findMatchesFromPage (styles, html, options) {
   const browser = await puppeteer.launch()
   let selectors
   try {
+    const elementQuery = getElementQuery(html)
     const page = await createPage(browser, styles, html)
-    const elementQuery = await getElementQuery(page, html)
     selectors = await page.evaluate(findMatchingRules, elementQuery, options)
     selectors = stringifySelectors(selectors, options)
   } catch (error) {

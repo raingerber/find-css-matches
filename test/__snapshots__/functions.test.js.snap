@@ -1,0 +1,93 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`findRulesForElement should include both full and partial matches when options.findPartialMatches is true 1`] = `
+Object {
+  "matches": Array [
+    Object {
+      "isPartialMatch": false,
+      "selector": Array [
+        Array [
+          "",
+          "div.container",
+        ],
+        Array [
+          "ul",
+          "",
+        ],
+      ],
+    },
+    Object {
+      "isPartialMatch": true,
+      "selector": Array [
+        Array [
+          "ul",
+          "",
+        ],
+        Array [
+          "section",
+          "div",
+        ],
+      ],
+    },
+  ],
+}
+`;
+
+exports[`findRulesForElement should include matching children when options.recursive is true 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [],
+      "matches": Array [],
+    },
+    Object {
+      "children": Array [],
+      "matches": Array [
+        Object {
+          "isPartialMatch": true,
+          "selector": Array [
+            Array [
+              "section",
+              "div > .child-2",
+            ],
+          ],
+        },
+      ],
+    },
+    Object {
+      "children": Array [],
+      "matches": Array [],
+    },
+  ],
+  "matches": Array [
+    Object {
+      "isPartialMatch": true,
+      "selector": Array [
+        Array [
+          ".absent-parent >",
+          "div",
+        ],
+      ],
+    },
+  ],
+}
+`;
+
+exports[`findRulesForElement should respect options.findPartialMatches and options.recursive when they are false 1`] = `
+Object {
+  "matches": Array [
+    Object {
+      "selector": Array [
+        Array [
+          "",
+          "div",
+        ],
+        Array [
+          "ul",
+          "",
+        ],
+      ],
+    },
+  ],
+}
+`;

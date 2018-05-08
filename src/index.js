@@ -7,8 +7,6 @@ const DEFAULT_OPTIONS = {
   formatSelector: (a, b) => [a, b]
 }
 
-// TODO export normalizeStyles + add tests
-
 /**
  * @param {Array|String|Object} styles
  * @return {Array<Object>}
@@ -35,4 +33,4 @@ function findMatches (styles, html, userOptions) {
   return findMatchesFromPage(stylesArray, html, options)
 }
 
-export {normalizeStyles, findMatches}
+export {findMatches}
