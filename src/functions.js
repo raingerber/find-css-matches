@@ -117,9 +117,6 @@ function findMatchingPartOfSelector (matches, element, selector, depth) {
   const parts = selector.split(/\s+/)
   for (let i = 0, part = parts[i]; part; part = parts[++i]) {
     if (/[>+~]/.test(part)) {
-      // TODO
-      // the problem when depth > 0 is that part of the selector might still extend above the root
-      // explain this is for div > div > div matching the child in <div><div></div></div>
       if (combinatorPreventsMatch(matches, element, parts, i, depth)) {
         break
       }
