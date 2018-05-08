@@ -1,8 +1,11 @@
 import {findMatchesFromPage} from './css-parser'
 
+// TODO use the !== method for setting boolean options?
+
 const DEFAULT_OPTIONS = {
   cssText: false,
   recursive: true,
+  includeHtml: false,
   findPartialMatches: true,
   formatSelector: (a, b) => [a, b]
 }

@@ -71,7 +71,7 @@ function findRulesForElement (matches, rules, element, options, depth) {
       })
 
       if (hasMatch) {
-        acc.push(formatRule(selector, rule, options))
+        acc.push(formatRule(element, selector, rule, options))
       }
 
       return acc
@@ -231,15 +231,29 @@ function getElementsUsingCombinator (element, combinator, depth) {
 }
 
 /**
+ * @param {DOMElement} element
+ * @return {String}
+ */
+function stringifyElement (element) {
+  const match = element.outerHTML.match(/[^>]*>/)
+  return match ? match[0] : ''
+}
+
+/**
+ * @param {DOMElement} element
  * @param {Array<Array<String>>} selector
  * @param {CSSRule} rule
  * @param {Object} options
  * @return {Object}
  */
-function formatRule (selector, rule, options) {
+function formatRule (element, selector, rule, options) {
   const ruleObj = {selector}
   if (rule.parentRule && rule.parentRule.media) {
     ruleObj.mediaText = rule.parentRule.media.mediaText
+  }
+
+  if (options.includeHtml) {
+    ruleObj.tagHtml = stringifyElement(element)
   }
 
   if (options.cssText === true) {
@@ -261,5 +275,6 @@ export {
   combinatorPreventsMatch,
   selectorHasDescendentCombinator,
   getElementsUsingCombinator,
+  stringifyElement,
   formatRule
 }

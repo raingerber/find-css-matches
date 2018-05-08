@@ -11,6 +11,7 @@ const {
   combinatorPreventsMatch,
   selectorHasDescendentCombinator,
   getElementsUsingCombinator,
+  stringifyElement,
   formatRule
 } = require('../__test__/index')
 
@@ -336,53 +337,76 @@ cases('getElementsUsingCombinator', opts => {
   finalDepth: 1
 }])
 
+describe('stringifyElement', () => {
+  it("should stringify the element's opening tag", () => {
+    const dom = new JSDOM('<section class="a b" data-attribute="true"><div></div></section>')
+    const tagHtml = '<section class="a b" data-attribute="true">'
+    const element = dom.window.document.querySelector('section')
+    expect(stringifyElement(element)).toBe(tagHtml)
+  })
+})
+
 cases('formatRule', opts => {
-  const result = formatRule(opts.selector, opts.rule, opts.options)
+  const element = document.createElement('div')
+  const result = formatRule(element, opts.selector, opts.rule, opts.options)
   expect(result).toEqual(opts.result)
 }, [{
-  name: 'should return the selector without cssText, mediaText, or findPartialMatches keys',
+  name: 'should return the selector without tagHtml, cssText, mediaText, or isPartialMatch properties',
   selector: [['', 'div']],
   rule: {
-    cssText: '<placeholder>'
+    cssText: 'div { color: red }'
   },
   options: {},
   result: {
     selector: [['', 'div']]
   }
 }, {
+  name: 'should include the tagHtml property when options.includeHtml === true',
+  selector: [['', 'div']],
+  rule: {
+    cssText: 'div { color: red }'
+  },
+  options: {
+    includeHtml: true
+  },
+  result: {
+    selector: [['', 'div']],
+    tagHtml: '<div>'
+  }
+}, {
   name: 'should include the cssText when options.cssText === true',
   selector: [['', 'div']],
   rule: {
-    cssText: '<placeholder>'
+    cssText: 'div { color: red }'
   },
   options: {
     cssText: true
   },
   result: {
     selector: [['', 'div']],
-    cssText: '<placeholder>'
+    cssText: 'div { color: red }'
   }
 }, {
   name: 'should include the mediaText when parentRule.media.mediaText is defined',
   selector: [['', 'div']],
   rule: {
-    cssText: '<placeholder>',
+    cssText: 'div { color: red }',
     parentRule: {
       media: {
-        mediaText: 'I am the MEDIA TEXT.'
+        mediaText: 'max-width: 888px'
       }
     }
   },
   options: {},
   result: {
     selector: [['', 'div']],
-    mediaText: 'I am the MEDIA TEXT.'
+    mediaText: 'max-width: 888px'
   }
 }, {
   name: 'isPartialMatch is true when the selector contains at least one full match',
   selector: [['.the', '.last'], ['.one', '.is-a'], ['', '.full-match']],
   rule: {
-    cssText: '<placeholder>'
+    cssText: '.the .last, .one .is-a, .full-match { color: red }'
   },
   options: {
     findPartialMatches: true
@@ -395,7 +419,7 @@ cases('formatRule', opts => {
   name: 'isPartialMatch is false when the selector only contains partial matches',
   selector: [['.each', '.one'], ['.is', '.a'], ['.partial', '.match']],
   rule: {
-    cssText: '<placeholder>'
+    cssText: '.each .one, .is .a, .partial .match { color: red }'
   },
   options: {
     findPartialMatches: true

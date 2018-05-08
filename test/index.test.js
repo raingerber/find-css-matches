@@ -31,7 +31,7 @@ describe('findMatches', () => {
     const result = await findMatches(styles, html, options)
     expect(Object.keys(result)).toEqual(['matches']) // no "children" key
   })
-  it('should include cssText for each matching selector when that option is true', async () => {
+  it('should include cssText arrays when option.cssText is true', async () => {
     const options = {
       recursive: true,
       cssText: true
