@@ -6,7 +6,7 @@
   "module": "dist/index.esm.js",
   "scripts": {
     "build": "rollup -c",
-    "test": "standard 'src/**/*.js' && rollup -c --environment TEST_BUILD && jest; rm __test__/index.js"
+    "test": "standard 'src/**/*.js' && rollup -c --environment TEST_BUILD && jest; rm -rf __test__"
   },
   "keywords": [
     "css"

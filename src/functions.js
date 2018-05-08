@@ -212,10 +212,14 @@ function getElementsUsingCombinator (element, combinator, depth) {
   const elements = []
   let depthOfElements = depth
   if (combinator === '>') {
-    elements.push(element.parentNode)
+    if (element.parentNode) {
+      elements.push(element.parentNode)
+    }
     depthOfElements--
   } else if (combinator === '+') {
-    elements.push(element.previousElementSibling)
+    if (element.previousElementSibling) {
+      elements.push(element.previousElementSibling)
+    }
   } else if (combinator === '~') {
     let el = element
     while ((el = el.previousElementSibling)) {

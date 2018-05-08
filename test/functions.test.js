@@ -299,25 +299,40 @@ cases('getElementsUsingCombinator', opts => {
       <div class="child-3">zzz</div>
     </div>
   `
-  const {element} = createDom(html, '.child-3')
+  const {element} = createDom(html, opts.selector)
   const result = getElementsUsingCombinator(element, ...opts.args)
   const classNames = result.elements.map(el => el.getAttribute('class'))
   expect(classNames).toEqual(opts.classNames)
   expect(result.depth).toEqual(opts.finalDepth)
 }, [{
   name: 'should return the parent element for the > combinator',
+  selector: '.child-3',
   args: ['>', 1],
   classNames: ['container'],
   finalDepth: 0 // depth should decrease by 1
 }, {
   name: 'should return the previous sibling element for the + combinator',
+  selector: '.child-3',
   args: ['+', 1],
   classNames: ['child-2'],
   finalDepth: 1
 }, {
   name: 'should return the previous sibling elements for the ~ combinator',
+  selector: '.child-3',
   args: ['~', 1],
   classNames: ['child-1', 'child-2'],
+  finalDepth: 1
+}, {
+  name: 'should return an empty array for the + combinator when no previous sibling is found',
+  selector: '.child-1',
+  args: ['+', 1],
+  classNames: [],
+  finalDepth: 1
+}, {
+  name: 'should return an empty array for the ~ combinator when no previous siblings are found',
+  selector: '.child-1',
+  args: ['~', 1],
+  classNames: [],
   finalDepth: 1
 }])
 
