@@ -68,7 +68,7 @@ function findMatchingRules (elementQuery, options) {
   // we don't want "body > *" to be a full match;
   // however, a documentFragment will not render
   // html and body tags, so we render in the DOM
-  element = element.parentElement.removeChild(element)
+  element = element.parentNode.removeChild(element)
 
   // eslint-disable-next-line no-undef
   return findRulesForElement(matches, rules, element, options, 0)
