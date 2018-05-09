@@ -357,7 +357,7 @@ cases('formatRule', opts => {
   const result = formatRule(opts.selector, opts.rule, opts.options)
   expect(result).toEqual(opts.result)
 }, [{
-  name: 'should return the selector without html, css, mediaText, or isPartialMatch properties',
+  name: 'should return the selector without html, css, media, or isPartialMatch properties',
   selector: [['', 'div']],
   rule: {
     cssText: 'div { color: red }'
@@ -382,7 +382,7 @@ cases('formatRule', opts => {
     ]
   }
 }, {
-  name: 'should include the mediaText when parentRule.media.mediaText is defined',
+  name: 'should include the media property when parentRule.media.mediaText is defined',
   selector: [['', 'div']],
   rule: {
     cssText: 'div { color: red }',
@@ -395,7 +395,7 @@ cases('formatRule', opts => {
   options: {},
   result: {
     selector: [['', 'div']],
-    mediaText: 'max-width: 888px'
+    media: 'max-width: 888px'
   }
 }, {
   name: 'isPartialMatch is true when the selector contains at least one full match',

@@ -1,9 +1,25 @@
-# Find All Matches
+# Find CSS Matches
 
-Given some HTML and CSS, find the selectors that *could* apply to each element. Uses [Puppeteer](https://github.com/GoogleChrome/puppeteer).
+Given some HTML and CSS, find the selectors that match each element, including [partial matches](#partial-matching). Uses [Puppeteer](https://github.com/GoogleChrome/puppeteer).
+
+## Why?
+
+In web projects, it can be difficult to know what CSS selectors will apply to static HTML, especially with larger stylesheets or third-party CSS. This library makes the relationship between markup and CSS more transparent. When developing HTML, it can show the CSS that will apply to the rendered elements, and it's the core behind [jest-css-match-serializer](https://github.com/raingerber/jest-css-match-serializer). 
 
 ```js
 const { findMatches } = require('find-css-matches')
+
+const styles = `
+  div#target {
+    padding: 40px;
+  }
+  div#not-being-used {
+    opacity: .5;
+  }
+  .class-that-could-exist #target {
+    font-size: 18px;
+  }
+`
 
 const html = `
   <div id="target">
@@ -12,90 +28,61 @@ const html = `
   </div>
 `
 
-const styles = `
-  div#target {
-    padding: 40px;
-  }
-  div#ignore-me {
-    opacity: .5;
-  }
-  .class-that-could-exist #target {
-    font-size: 18px;
-  }
-`
-
 const options = {
+  recursive: false,
   findPartialMatches: true
 }
 
-const result = findMatches(styles, html, options)
-
-// RESULT:
-//
-// {
-//   matches: [
-//     {
-//       selector: "div#target",
-//       isPartialMatch: false
-//     },
-//     {
-//       selector: ".class-that-could-exist #target",
-//       isPartialMatch: true
-//     }
-//   ]
-// }
+const result = await findMatches(styles, html, options)
 ```
 
-## Partial Matching
-
-If you write some HTML, it's difficult to know what CSS *could* be applied to it, espcially if you have large, possibly external stylesheets. Take this example:
+**result:**
 
 ```js
-const html = `
-  <div>
-    I am the HTML for a simple component.
-  </div>
-`
-
-const styles = `
-  .class span {
-    color: yellow;
-  }
-  .class div {
-    color: purple;
-  }
-`
+{
+  matches: [
+    {
+      selector: 'div#target',
+      isPartialMatch: false
+    },
+    {
+      selector: '.class-that-could-exist #target',
+      isPartialMatch: true
+    }
+  ]
+}
 ```
-
-We know that `.class span` will never apply to a `div`, but the text in the `div` *might* be purple, depending on whether a parent node has `.class` applied to it. That's where partial matching comes in.
-
-Partial matching returns the selectors that could apply to an element. In this example, `.class div` is a partial match, where `.class` is the "unmatched" portion and `div` is the "matched" portion. See below for a more detailed example.
 
 ## API
 
-**findMatches(styles, html, [options])**
+### findMatches(styles, html, [options])
 
-Returns a promise
+Returns a promise that resolves to an object:
+
+```
+{
+  matches: {
+    selector: <String>,
+    [isPartialMatch]: <Boolean>,
+    [media]: <String>,
+    [css]: Array<String>
+  },
+  [children]: Array<Object>,
+  [html]: <String>
+}
+```
 
 **html**
 
 type: `string`
 
-The HTML to search for CSS matches. There should be a single root element.
+The HTML to search for matches. There should be a single root element.
 
 **styles**
 
-type: `string | array`
+type: `string | object | array`
 
-Either a CSS string, or an array of objects that each have a **url**, **path**, or **content** key. Objects are forwarded to [Puppeteer#addStyleTag](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pageaddstyletagoptions)
-
-**options.cssText**
-
-type: `boolean`
-
-default: `false`
-
-Include the CSS text for each matching selector
+Either a CSS string, object, or array of objects that each have a **url**, **path**, or **content** property. Objects are forwarded to [Puppeteer#addStyleTag](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pageaddstyletagoptions)
 
 **options.recursive**
 
@@ -103,7 +90,7 @@ type: `boolean`
 
 default: `true`
 
-Include matches for the child elements (the returned object will have a **children** key)
+Include matches for the child elements (the returned object will have a **children** property)
 
 **options.findPartialMatches**
 
@@ -119,32 +106,119 @@ type: `function`
 
 default: `(unmatched, matched) => [unmatched, matched]`
 
-When **findPartialMatches** is true, this can be used to format matching selectors. It should return an array of two strings, which will be joined with a single space to create the final selector string.
+When **findPartialMatches** is true, this can be used to format matching selectors. It should return an array of two strings, which are joined with a single space to create the final selector string.
 
-## Example
+**options.includeHtml**
+
+type: `boolean`
+
+default: `false`
+
+Include an HTML string for each element that's visited
+
+**options.includeCss**
+
+type: `boolean`
+
+default: `false`
+
+Include the CSS declarations for each matching selector
+
+## Partial Matching
+
+Partial matches are selectors that *could* apply to an element. They're useful because selectors can reference siblings and ancestors, but those might be unknown when testing an HTML fragment. Take this example:
 
 ```js
-const { findMatches } = require('find-css-matches')
-
 const html = `
-  <div class="cadabra">
-    <span class="cadabra">
-      The work of magic is this,
-      that it breathes and at every
-      breath transforms realities.
-    </span>
+  <div>
+    I am the HTML for a simple component.
   </div>
 `
 
-const styles = [{ path: './index.css' }]
+const styles = `
+  #id span {
+    color: yellow;
+  }
+  #id div {
+    color: purple;
+  }
+`
+```
+
+We know that `#id span` will never apply to a `div`, but `#id div` *might* apply, depending on whether or not an ancestor has `#id`. This means that `#id div` is a partial match, where `#id` is the "unmatched" portion and `div` is the "matched" portion.
+
+## Example #1
+
+Using `options.includeHtml` and `options.includeCss`:
+
+```js
+const styles = `
+  @media (max-width: 599px) {
+    #parent {
+      margin: 20px;
+    }
+  }
+  #parent > span ~ span {
+    font-weight: 800;
+  }
+`
+
+const html = `
+  <div id="parent">
+    <span>child 1</span>
+    <span>child 2</span>
+  </div>
+`
 
 const options = {
   recursive: true,
-  findPartialMatches: true
+  includeHtml: true,
+  includeCss: true,
+  findPartialMatches: false
 }
 
-findMatches(styles, html, options)
+const result = await findMatches(styles, html, options)
 ```
+
+**result:**
+
+```js
+{
+  matches: [
+    {
+      selector: '#parent',
+      media: '(max-width: 599px)',
+      css: [
+        'margin: 20px'
+      ]
+    }
+  ],
+  html: '<div id="parent">',
+  children: [
+    {
+      matches: [],
+      html: '<span>',
+      children: []
+    },
+    {
+      matches: [
+        {
+          selector: '#parent > span ~ span',
+          css: [
+            'font-weight: 800'
+          ]
+        }
+      ],
+      html: '<span>',
+      children: []
+    }
+  ]
+}
+```
+
+## Example #2
+
+Partial match examples:
 
 `index.css`
 
@@ -174,21 +248,92 @@ findMatches(styles, html, options)
 }
 ```
 
+`index.js`
+
+```js
+const { findMatches } = require('find-css-matches')
+
+const styles = [{ path: './index.css' }]
+
+const html = `
+  <div class="cadabra">
+    <span class="cadabra">
+      The work of magic is this,
+      that it breathes and at every
+      breath transforms realities.
+    </span>
+  </div>
+`
+
+const options = {
+  recursive: true,
+  findPartialMatches: true,
+  formatSelector: (a, b) => [a, b ? `??${b}??` : b]
+}
+
+const result = await findMatches(styles, html, options)
+```
+
+**result:**
+
+```js
+{
+  matches: [
+    {
+      selector: '??.cadabra??',
+      isPartialMatch: false
+    },
+    {
+      selector: '.abra ??.cadabra??',
+      isPartialMatch: true
+    },
+    {
+      selector: '.abra > ??.cadabra??',
+      isPartialMatch: true
+    },
+    {
+      selector: '.abra + ??.cadabra??',
+      isPartialMatch: true
+    },
+    {
+      selector: '.abra ~ ??.cadabra??',
+      isPartialMatch: true
+    }
+  ],
+  children: [
+    {
+      matches: [
+        {
+          selector: '??.cadabra??',
+          isPartialMatch: false
+        },
+        {
+          selector: '.abra ??.cadabra??',
+          isPartialMatch: true
+        }
+      ],
+      children: []
+    }
+  ]
+}
+```
+
 ### Matches for the parent element:
 
 ```html
-<span class="cadabra">
+<span class="cadabra"> 👈
+  <div class="cadabra">
 ```
 
-Excluded:
+**Excluded:**
 
 `❌  .abra`
 
-Full Matches:
+**Full Matches:**
 
 `✅  .cadabra`
 
-Partial Matches:
+**Partial Matches:**
 
 `✅  .abra .cadabra`
 
@@ -200,14 +345,14 @@ Partial Matches:
 
 ### Matches for the child element:
 
-Partial matching for chidren is more restricted, because the parent and siblings are known elements, so there's less ambiguity.
-
 ```html
 <div class="cadabra">
-  👉 <span class="cadabra"> 👈
+  <span class="cadabra"> 👈
 ```
 
-Excluded:
+Partial matching for chidren is more restricted, because the parent and siblings are known elements, so there's less ambiguity.
+
+**Excluded:**
 
 `❌  .abra`
 
@@ -217,11 +362,11 @@ Excluded:
 
 `❌  .abra ~ .cadabra`
 
-Full Matches:
+**Full Matches:**
 
 `✅  .cadabra`
 
-Partial Matches:
+**Partial Matches:**
 
 `✅  .abra .cadabra`
 

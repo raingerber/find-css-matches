@@ -67,11 +67,6 @@ function findMatchingRules (elementQuery, options) {
   const rules = getCssRules(document.styleSheets)
   let element = document.querySelector(elementQuery)
 
-  // we don't make assumptions about the position
-  // of the element in the DOM - so, for example,
-  // we don't want "body > *" to be a full match;
-  // however, a documentFragment will not render
-  // html and body tags, so we render in the DOM
   element = element.parentNode.removeChild(element)
 
   // eslint-disable-next-line no-undef

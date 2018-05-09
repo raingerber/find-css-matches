@@ -4,6 +4,7 @@
  * @returns {Array<CSSRule>}
  */
 function getCssRules (sheets) {
+  // https://developer.mozilla.org/en-US/docs/Web/API/CSSRule
   const CSS_RULE_TYPES = [
     /* eslint-disable no-multi-spaces */
     'UNKNOWN_RULE',              // 0
@@ -176,6 +177,7 @@ function combinatorPreventsMatch (matches, element, parts, index, elementDepth) 
       <div depth="2" />
   */
   let depthDiff = elementDepth
+
   // combinators won't appear consecutively,
   // so we can start the search at index + 2
   for (let i = index + 2; i < parts.length; i++) {
@@ -265,7 +267,7 @@ function cssTextToArray (cssText) {
 function formatRule (selector, rule, options) {
   const ruleObj = {selector}
   if (rule.parentRule && rule.parentRule.media) {
-    ruleObj.mediaText = rule.parentRule.media.mediaText
+    ruleObj.media = rule.parentRule.media.mediaText
   }
 
   if (options.includeCss === true) {

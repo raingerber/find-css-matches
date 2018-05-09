@@ -140,12 +140,12 @@ Object {
               "matches": Array [
                 Object {
                   "isPartialMatch": true,
-                  "mediaText": "(max-width: 500px)",
+                  "media": "(max-width: 500px)",
                   "selector": ".class1 > .class2 > ???section > div > * > li:first-of-type???",
                 },
                 Object {
                   "isPartialMatch": true,
-                  "mediaText": "(max-width: 500px)",
+                  "media": "(max-width: 500px)",
                   "selector": ".class1 > class2 ???li:first-of-type???",
                 },
               ],
@@ -191,7 +191,7 @@ Object {
     },
     Object {
       "isPartialMatch": true,
-      "mediaText": "(max-width: 1000px)",
+      "media": "(max-width: 1000px)",
       "selector": "div[data-gloop=\\"true\\"] > ???*???",
     },
   ],
