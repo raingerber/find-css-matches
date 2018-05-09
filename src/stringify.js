@@ -5,11 +5,12 @@
  * @param {Object} param0
  * @param {Array} param0.matches
  * @param {Array} param0.children
+ * @param {String} param0.html
  * @param {Object} options
  * @param {Function} options.formatSelector
  * @returns {Object}
  */
-function stringifySelectors ({matches, children}, options) {
+function stringifySelectors ({matches, children, html}, options) {
   const result = {
     matches: matches.map(match => {
       const result = {
@@ -22,6 +23,10 @@ function stringifySelectors ({matches, children}, options) {
 
       return result
     })
+  }
+
+  if (html) {
+    result.html = html
   }
 
   if (children) {

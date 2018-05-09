@@ -87,7 +87,7 @@ function findRulesForElement (matches, rules, element, options, depth) {
     }, [])
   }
 
-  if (options.includeHtml) {
+  if (options.includeHtml === true) {
     result.html = stringifyElement(element)
   }
 
