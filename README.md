@@ -30,7 +30,8 @@ const html = `
 
 const options = {
   recursive: false,
-  findPartialMatches: true
+  findPartialMatches: true,
+  formatSelector: (a, b) => [a, b ? `??${b}??` : b]
 }
 
 const result = await findMatches(styles, html, options)
@@ -46,7 +47,7 @@ const result = await findMatches(styles, html, options)
       isPartialMatch: false
     },
     {
-      selector: '.class-that-could-exist #target',
+      selector: '.class-that-could-exist ??#target??',
       isPartialMatch: true
     }
   ]
