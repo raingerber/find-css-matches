@@ -19,6 +19,9 @@
     "email": "raingerber2@gmail.com"
   },
   "license": "ISC",
+  "engines": {
+    "node": ">= 8.6.0"
+  },
   "dependencies": {
     "puppeteer": "^1.2.0"
   },
