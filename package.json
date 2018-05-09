@@ -1,7 +1,7 @@
 {
   "name": "find-css-matches",
   "version": "1.0.0",
-  "description": "Find all CSS selectors that match an HTML snippet.",
+  "description": "Find the CSS selectors that match an HTML snippet.",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "scripts": {
@@ -9,7 +9,10 @@
     "test": "standard 'src/**/*.js' && rollup -c --environment TEST_BUILD && jest; rm -rf __test__"
   },
   "keywords": [
-    "css"
+    "css",
+    "match",
+    "selector",
+    "puppeteer"
   ],
   "author": {
     "name": "Matthew Armstrong",
@@ -36,6 +39,9 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/raingerber/find-css-matches"
+  },
+  "bugs": {
+    "url": "https://github.com/raingerber/find-css-matches/issues"
   },
   "standard": {
     "ignore": [
