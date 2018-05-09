@@ -1,12 +1,21 @@
 /* eslint-env jest */
 
-const {stringifySelectors} = require('../__test__/index')
+const {cssTextToArray, stringifySelectors} = require('../__test__/index')
+
+describe('cssTextToArray', () => {
+  const result = cssTextToArray('div, div .class { padding: 40px; font-size: 20px; transform: translate(30px, 20px) rotate(20deg); }')
+  expect(result).toEqual([
+    'padding: 40px',
+    'font-size: 20px',
+    'transform: translate(30px, 20px) rotate(20deg)'
+  ])
+})
 
 describe('stringifySelectors', () => {
-  it('should stringify selector arrays without modifying other keys', () => {
+  it('should stringify selector arrays and convert cssText strings to arrays', () => {
     const input = {
       matches: [{
-        cssText: '<placeholder>',
+        css: 'div, div .class { padding: 40px; font-size: 20px; }',
         selector: [
           ['div', ' '],
           ['div', '.class']
@@ -14,7 +23,7 @@ describe('stringifySelectors', () => {
       }],
       children: [{
         matches: [{
-          cssText: '<placeholder>',
+          css: 'div > div { color: blue; margin: 0px 0px 10px 20px; }',
           selector: [
             ['div >', ' div ']
           ]
@@ -22,7 +31,7 @@ describe('stringifySelectors', () => {
         children: []
       }, {
         matches: [{
-          cssText: '<placeholder>',
+          css: 'div > div div, div {}',
           mediaText: 'max-width: 888px',
           selector: [
             [' div > ', ' div div'],

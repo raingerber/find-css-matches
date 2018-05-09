@@ -109,6 +109,13 @@ cases('findRulesForElement', opts => {
     findPartialMatches: true,
     recursive: true
   }
+}, {
+  name: 'should include the html property when options.includeHtml === true',
+  rules: [],
+  options: {
+    recursive: true,
+    includeHtml: true
+  }
 }])
 
 describe('testIfSelectorIsMatch', () => {
@@ -340,18 +347,17 @@ cases('getElementsUsingCombinator', opts => {
 describe('stringifyElement', () => {
   it("should stringify the element's opening tag", () => {
     const dom = new JSDOM('<section class="a b" data-attribute="true"><div></div></section>')
-    const tagHtml = '<section class="a b" data-attribute="true">'
+    const html = '<section class="a b" data-attribute="true">'
     const element = dom.window.document.querySelector('section')
-    expect(stringifyElement(element)).toBe(tagHtml)
+    expect(stringifyElement(element)).toBe(html)
   })
 })
 
 cases('formatRule', opts => {
-  const element = document.createElement('div')
-  const result = formatRule(element, opts.selector, opts.rule, opts.options)
+  const result = formatRule(opts.selector, opts.rule, opts.options)
   expect(result).toEqual(opts.result)
 }, [{
-  name: 'should return the selector without tagHtml, cssText, mediaText, or isPartialMatch properties',
+  name: 'should return the selector without html, css, mediaText, or isPartialMatch properties',
   selector: [['', 'div']],
   rule: {
     cssText: 'div { color: red }'
@@ -361,30 +367,17 @@ cases('formatRule', opts => {
     selector: [['', 'div']]
   }
 }, {
-  name: 'should include the tagHtml property when options.includeHtml === true',
+  name: 'should include the cssText when options.includeCss === true',
   selector: [['', 'div']],
   rule: {
     cssText: 'div { color: red }'
   },
   options: {
-    includeHtml: true
+    includeCss: true
   },
   result: {
     selector: [['', 'div']],
-    tagHtml: '<div>'
-  }
-}, {
-  name: 'should include the cssText when options.cssText === true',
-  selector: [['', 'div']],
-  rule: {
-    cssText: 'div { color: red }'
-  },
-  options: {
-    cssText: true
-  },
-  result: {
-    selector: [['', 'div']],
-    cssText: 'div { color: red }'
+    css: 'div { color: red }'
   }
 }, {
   name: 'should include the mediaText when parentRule.media.mediaText is defined',

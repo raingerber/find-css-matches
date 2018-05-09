@@ -1,13 +1,16 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`stringifySelectors should stringify selector arrays without modifying other keys 1`] = `
+exports[`stringifySelectors should stringify selector arrays and convert cssText strings to arrays 1`] = `
 Object {
   "children": Array [
     Object {
       "children": Array [],
       "matches": Array [
         Object {
-          "cssText": "<placeholder>",
+          "css": Array [
+            "color: blue",
+            "margin: 0px 0px 10px 20px",
+          ],
           "selector": "?div >? DIV",
         },
       ],
@@ -16,7 +19,7 @@ Object {
       "children": Array [],
       "matches": Array [
         Object {
-          "cssText": "<placeholder>",
+          "css": Array [],
           "mediaText": "max-width: 888px",
           "selector": "?div >? DIV DIV, DIV",
         },
@@ -25,7 +28,10 @@ Object {
   ],
   "matches": Array [
     Object {
-      "cssText": "<placeholder>",
+      "css": Array [
+        "padding: 40px",
+        "font-size: 20px",
+      ],
       "selector": "?div?, ?div? .CLASS",
     },
   ],

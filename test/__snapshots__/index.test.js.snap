@@ -23,24 +23,30 @@ Object {
 }
 `;
 
-exports[`findMatches should include cssText for each matching selector when that option is true 1`] = `
+exports[`findMatches should include css arrays when option.includeCss is true 1`] = `
 Object {
   "children": Array [
     Object {
       "children": Array [],
       "matches": Array [
         Object {
-          "cssText": "div { color: red; }",
+          "css": Array [
+            "color: red",
+          ],
           "isPartialMatch": false,
           "selector": "div",
         },
         Object {
-          "cssText": "div > div { color: blue; }",
+          "css": Array [
+            "color: blue",
+          ],
           "isPartialMatch": false,
           "selector": "div > div",
         },
         Object {
-          "cssText": "div > div > div { color: green; }",
+          "css": Array [
+            "color: green",
+          ],
           "isPartialMatch": true,
           "selector": "div > div > div",
         },
@@ -49,17 +55,23 @@ Object {
   ],
   "matches": Array [
     Object {
-      "cssText": "div { color: red; }",
+      "css": Array [
+        "color: red",
+      ],
       "isPartialMatch": false,
       "selector": "div",
     },
     Object {
-      "cssText": "div > div { color: blue; }",
+      "css": Array [
+        "color: blue",
+      ],
       "isPartialMatch": true,
       "selector": "div > div",
     },
     Object {
-      "cssText": "div > div > div { color: green; }",
+      "css": Array [
+        "color: green",
+      ],
       "isPartialMatch": true,
       "selector": "div > div > div",
     },

@@ -1,7 +1,7 @@
 
 /**
  * @param {StyleSheetList} sheets
- * @return {Array<CSSRule>}
+ * @returns {Array<CSSRule>}
  */
 function getCssRules (sheets) {
   const CSS_RULE_TYPES = [
@@ -44,12 +44,21 @@ function getCssRules (sheets) {
 }
 
 /**
+ * @param {DOMElement} element
+ * @returns {String}
+ */
+function stringifyElement (element) {
+  const match = element.outerHTML.match(/[^>]*>/)
+  return match ? match[0] : ''
+}
+
+/**
  * @param {Function} matches
  * @param {Array<CSSRule>} rules
  * @param {DOMElement} element
  * @param {Object} options
  * @param {Number} depth
- * @return {Object}
+ * @returns {Object}
  */
 function findRulesForElement (matches, rules, element, options, depth) {
   const result = {
@@ -71,11 +80,15 @@ function findRulesForElement (matches, rules, element, options, depth) {
       })
 
       if (hasMatch) {
-        acc.push(formatRule(element, selector, rule, options))
+        acc.push(formatRule(selector, rule, options))
       }
 
       return acc
     }, [])
+  }
+
+  if (options.includeHtml) {
+    result.html = stringifyElement(element)
   }
 
   if (options.recursive === true) {
@@ -92,7 +105,7 @@ function findRulesForElement (matches, rules, element, options, depth) {
  * @param {Function} matches
  * @param {DOMElement} element
  * @param {String} selector
- * @return {Array<String>}
+ * @returns {Array<String>}
  */
 function testIfSelectorIsMatch (matches, element, selector) {
   if (matches(element, selector)) {
@@ -111,7 +124,7 @@ function testIfSelectorIsMatch (matches, element, selector) {
  * @param {DOMElement} element
  * @param {String} selector
  * @param {Number} depth
- * @return {Array<String>}
+ * @returns {Array<String>}
  */
 function findMatchingPartOfSelector (matches, element, selector, depth) {
   const parts = selector.split(/\s+/)
@@ -140,7 +153,7 @@ function findMatchingPartOfSelector (matches, element, selector, depth) {
  * @param {Array<String>} parts
  * @param {Number} index - index of the combinator in question
  * @param {Number} elementDepth
- * @return {Boolean}
+ * @returns {Boolean}
  */
 function combinatorPreventsMatch (matches, element, parts, index, elementDepth) {
   if (elementDepth < 1) {
@@ -186,7 +199,7 @@ function combinatorPreventsMatch (matches, element, parts, index, elementDepth) 
  * but in that case parts[i] must be a combinator
  * @param {Array<String>} parts
  * @param {Number} index
- * @return {Boolean}
+ * @returns {Boolean}
  */
 function selectorHasDescendentCombinator (parts, index) {
   for (let i = index + 1; i < parts.length - 1; i++) {
@@ -206,7 +219,7 @@ function selectorHasDescendentCombinator (parts, index) {
  * @param {DOMElement} element
  * @param {String} combinator
  * @param {Number} depth
- * @return {Object}
+ * @returns {Object}
  */
 function getElementsUsingCombinator (element, combinator, depth) {
   const elements = []
@@ -231,33 +244,19 @@ function getElementsUsingCombinator (element, combinator, depth) {
 }
 
 /**
- * @param {DOMElement} element
- * @return {String}
- */
-function stringifyElement (element) {
-  const match = element.outerHTML.match(/[^>]*>/)
-  return match ? match[0] : ''
-}
-
-/**
- * @param {DOMElement} element
  * @param {Array<Array<String>>} selector
  * @param {CSSRule} rule
  * @param {Object} options
- * @return {Object}
+ * @returns {Object}
  */
-function formatRule (element, selector, rule, options) {
+function formatRule (selector, rule, options) {
   const ruleObj = {selector}
   if (rule.parentRule && rule.parentRule.media) {
     ruleObj.mediaText = rule.parentRule.media.mediaText
   }
 
-  if (options.includeHtml) {
-    ruleObj.tagHtml = stringifyElement(element)
-  }
-
-  if (options.cssText === true) {
-    ruleObj.cssText = rule.cssText
+  if (options.includeCss === true) {
+    ruleObj.css = rule.cssText // TODO arrayify it here?
   }
 
   if (options.findPartialMatches) {
@@ -269,12 +268,12 @@ function formatRule (element, selector, rule, options) {
 
 export {
   getCssRules,
+  stringifyElement,
   findRulesForElement,
   testIfSelectorIsMatch,
   findMatchingPartOfSelector,
   combinatorPreventsMatch,
   selectorHasDescendentCombinator,
   getElementsUsingCombinator,
-  stringifyElement,
   formatRule
 }

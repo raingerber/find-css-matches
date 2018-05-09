@@ -1,6 +1,6 @@
 /**
  * @param {String} cssText
- * @return {Array<String>}
+ * @returns {Array<String>}
  */
 function cssTextToArray (cssText) {
   const match = cssText.match(/{([^}]*)}/)
@@ -20,7 +20,7 @@ function cssTextToArray (cssText) {
  * @param {Array} param0.children
  * @param {Object} options
  * @param {Function} options.formatSelector
- * @return {Object}
+ * @returns {Object}
  */
 function stringifySelectors ({matches, children}, options) {
   const result = {
@@ -33,8 +33,8 @@ function stringifySelectors ({matches, children}, options) {
         }).join(', ')
       }
 
-      if (result.cssText) {
-        result.cssText = cssTextToArray(result.cssText)
+      if (result.css) {
+        result.css = cssTextToArray(result.css)
       }
 
       return result

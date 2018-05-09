@@ -73,6 +73,30 @@ Object {
 }
 `;
 
+exports[`findRulesForElement should include the html property when options.includeHtml === true 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [],
+      "html": "<div class=\\"child-1\\">",
+      "matches": Array [],
+    },
+    Object {
+      "children": Array [],
+      "html": "<div class=\\"child-2\\">",
+      "matches": Array [],
+    },
+    Object {
+      "children": Array [],
+      "html": "<div class=\\"child-3\\">",
+      "matches": Array [],
+    },
+  ],
+  "html": "<div class=\\"container\\">",
+  "matches": Array [],
+}
+`;
+
 exports[`findRulesForElement should respect options.findPartialMatches and options.recursive when they are false 1`] = `
 Object {
   "matches": Array [

@@ -31,10 +31,10 @@ describe('findMatches', () => {
     const result = await findMatches(styles, html, options)
     expect(Object.keys(result)).toEqual(['matches']) // no "children" key
   })
-  it('should include cssText arrays when option.cssText is true', async () => {
+  it('should include css arrays when option.includeCss is true', async () => {
     const options = {
       recursive: true,
-      cssText: true
+      includeCss: true
     }
     const result = await findMatches(styles, html, options)
     expect(result).toMatchSnapshot()

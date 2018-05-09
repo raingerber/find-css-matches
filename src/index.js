@@ -1,18 +1,16 @@
 import {findMatchesFromPage} from './css-parser'
 
-// TODO use the !== method for setting boolean options?
-
 const DEFAULT_OPTIONS = {
-  cssText: false,
   recursive: true,
   includeHtml: false,
+  includeCss: false,
   findPartialMatches: true,
   formatSelector: (a, b) => [a, b]
 }
 
 /**
  * @param {Array|String|Object} styles
- * @return {Array<Object>}
+ * @returns {Array<Object>}
  */
 function normalizeStyles (styles) {
   if (Array.isArray(styles)) {
@@ -28,7 +26,7 @@ function normalizeStyles (styles) {
  * @param {Object|Array<Object>} styles
  * @param {String} html
  * @param {Object} userOptions
- * @return {Promise<Object>}
+ * @returns {Promise<Object>}
  */
 function findMatches (styles, html, userOptions) {
   const stylesArray = normalizeStyles(styles)

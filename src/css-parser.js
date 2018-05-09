@@ -6,7 +6,7 @@ import {stringifySelectors} from './stringify'
  * @param {Browser} browser
  * @param {Array<Object>} styles
  * @param {String} html
- * @return {Object}
+ * @returns {Object}
  */
 async function createPage (browser, styles, html) {
   const page = await browser.newPage()
@@ -21,7 +21,7 @@ async function createPage (browser, styles, html) {
 
 /**
  * @param {String} html
- * @return {String}
+ * @returns {String}
  * @throws if the string does not contain an HTML tag
  */
 function getElementQuery (html) {
@@ -38,10 +38,12 @@ function getElementQuery (html) {
  * needs to be run in a browser context
  * @param {String} elementQuery
  * @param {Object} options
- * @return {Array<Object>}
+ * @returns {Array<Object>}
  */
 function findMatchingRules (elementQuery, options) {
   // STUB:getCssRules
+
+  // STUB:stringifyElement
 
   // STUB:findRulesForElement
 
@@ -54,8 +56,6 @@ function findMatchingRules (elementQuery, options) {
   // STUB:selectorHasDescendentCombinator
 
   // STUB:getElementsUsingCombinator
-
-  // STUB:stringifyElement
 
   // STUB:formatRule
 
@@ -80,7 +80,7 @@ function findMatchingRules (elementQuery, options) {
  * @param {Array<Object>} styles
  * @param {String} html
  * @param {Object} options
- * @return {Object}
+ * @returns {Object}
  */
 async function findMatchesFromPage (styles, html, options) {
   const elementQuery = getElementQuery(html)
