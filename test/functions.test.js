@@ -377,7 +377,9 @@ cases('formatRule', opts => {
   },
   result: {
     selector: [['', 'div']],
-    css: 'div { color: red }'
+    css: [
+      'color: red'
+    ]
   }
 }, {
   name: 'should include the mediaText when parentRule.media.mediaText is defined',

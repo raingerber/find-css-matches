@@ -244,6 +244,19 @@ function getElementsUsingCombinator (element, combinator, depth) {
 }
 
 /**
+ * @param {String} cssText
+ * @returns {Array<String>}
+ */
+function cssTextToArray (cssText) {
+  const match = cssText.match(/{([^}]*)}/)
+  const text = match ? match[1].trim() : ''
+  return text.split(/;\s*/).reduce((acc, str) => {
+    str && acc.push(`${str}`)
+    return acc
+  }, [])
+}
+
+/**
  * @param {Array<Array<String>>} selector
  * @param {CSSRule} rule
  * @param {Object} options
@@ -256,7 +269,7 @@ function formatRule (selector, rule, options) {
   }
 
   if (options.includeCss === true) {
-    ruleObj.css = rule.cssText // TODO arrayify it here?
+    ruleObj.css = cssTextToArray(rule.cssText)
   }
 
   if (options.findPartialMatches) {
@@ -275,5 +288,6 @@ export {
   combinatorPreventsMatch,
   selectorHasDescendentCombinator,
   getElementsUsingCombinator,
+  cssTextToArray,
   formatRule
 }

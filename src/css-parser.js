@@ -57,6 +57,8 @@ function findMatchingRules (elementQuery, options) {
 
   // STUB:getElementsUsingCombinator
 
+  // STUB:cssTextToArray
+
   // STUB:formatRule
 
   const matches = Function.call.bind(window.Element.prototype.webkitMatchesSelector)

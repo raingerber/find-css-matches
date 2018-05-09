@@ -7,10 +7,7 @@ Object {
       "children": Array [],
       "matches": Array [
         Object {
-          "css": Array [
-            "color: blue",
-            "margin: 0px 0px 10px 20px",
-          ],
+          "css": "div > div { color: blue; margin: 0px 0px 10px 20px; }",
           "selector": "?div >? DIV",
         },
       ],
@@ -19,7 +16,7 @@ Object {
       "children": Array [],
       "matches": Array [
         Object {
-          "css": Array [],
+          "css": "div > div div, div {}",
           "mediaText": "max-width: 888px",
           "selector": "?div >? DIV DIV, DIV",
         },
@@ -28,10 +25,7 @@ Object {
   ],
   "matches": Array [
     Object {
-      "css": Array [
-        "padding: 40px",
-        "font-size: 20px",
-      ],
+      "css": "div, div .class { padding: 40px; font-size: 20px; }",
       "selector": "?div?, ?div? .CLASS",
     },
   ],

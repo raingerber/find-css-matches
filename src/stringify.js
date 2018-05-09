@@ -1,17 +1,4 @@
 /**
- * @param {String} cssText
- * @returns {Array<String>}
- */
-function cssTextToArray (cssText) {
-  const match = cssText.match(/{([^}]*)}/)
-  const text = match ? match[1].trim() : ''
-  return text.split(/;\s*/).reduce((acc, str) => {
-    str && acc.push(`${str}`)
-    return acc
-  }, [])
-}
-
-/**
  * this needs to be called outside puppeteer,
  * because it uses the formatSelector function,
  * but functions can't be passed to page.evaluate
@@ -33,10 +20,6 @@ function stringifySelectors ({matches, children}, options) {
         }).join(', ')
       }
 
-      if (result.css) {
-        result.css = cssTextToArray(result.css)
-      }
-
       return result
     })
   }
@@ -49,6 +32,5 @@ function stringifySelectors ({matches, children}, options) {
 }
 
 export {
-  cssTextToArray,
   stringifySelectors
 }
