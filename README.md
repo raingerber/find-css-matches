@@ -30,7 +30,7 @@ const html = `
 
 const options = {
   recursive: false,
-  findPartialMatches: true,
+  includePartialMatches: true,
   formatSelector: (a, b) => [a, b ? `??${b}??` : b]
 }
 
@@ -93,7 +93,7 @@ default: `true`
 
 Include matches for the child elements (the returned object will have a **children** property)
 
-**options.findPartialMatches**
+**options.includePartialMatches**
 
 type: `boolean`
 
@@ -107,7 +107,7 @@ type: `function`
 
 default: `(unmatched, matched) => [unmatched, matched]`
 
-When **findPartialMatches** is true, this can be used to format matching selectors. It should return an array of two strings, which are joined with a single space to create the final selector string.
+When **includePartialMatches** is true, this can be used to format matching selectors. It should return an array of two strings, which are joined with a single space to create the final selector string.
 
 **options.includeHtml**
 
@@ -175,7 +175,7 @@ const options = {
   recursive: true,
   includeHtml: true,
   includeCss: true,
-  findPartialMatches: false
+  includePartialMatches: false
 }
 
 const result = await findMatches(styles, html, options)
@@ -268,7 +268,7 @@ const html = `
 
 const options = {
   recursive: true,
-  findPartialMatches: true,
+  includePartialMatches: true,
   formatSelector: (a, b) => [a, b ? `??${b}??` : b]
 }
 

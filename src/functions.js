@@ -67,7 +67,7 @@ function findRulesForElement (matches, rules, element, options, depth) {
       let hasMatch = false
       const selector = rule.selectorText.split(/\s*,\s*/).map(part => {
         let parsed
-        if (options.findPartialMatches) {
+        if (options.includePartialMatches) {
           parsed = findMatchingPartOfSelector(matches, element, part, depth)
         } else {
           parsed = testIfSelectorIsMatch(matches, element, part)
@@ -274,7 +274,7 @@ function formatRule (selector, rule, options) {
     ruleObj.css = cssTextToArray(rule.cssText)
   }
 
-  if (options.findPartialMatches) {
+  if (options.includePartialMatches) {
     ruleObj.isPartialMatch = selector.every(([unmatched]) => unmatched)
   }
 

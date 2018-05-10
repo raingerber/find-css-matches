@@ -77,26 +77,26 @@ cases('findRulesForElement', opts => {
   const rules = findRulesForElement(matches, opts.rules, element, opts.options, 0)
   expect(rules).toMatchSnapshot()
 }, [{
-  name: 'should respect options.findPartialMatches and options.recursive when they are false',
+  name: 'should respect options.includePartialMatches and options.recursive when they are false',
   rules: [{
     selectorText: 'div, ul' // full match, so it should be returned
   }, {
-    selectorText: 'ul, section div' // partial match, but findPartialMatches === false
+    selectorText: 'ul, section div' // partial match, but includePartialMatches === false
   }],
   options: {
-    findPartialMatches: false,
-    recursive: false
+    recursive: false,
+    includePartialMatches: false
   }
 }, {
-  name: 'should include both full and partial matches when options.findPartialMatches is true',
+  name: 'should include both full and partial matches when options.includePartialMatches is true',
   rules: [{
     selectorText: 'div.container, ul' // full match
   }, {
     selectorText: 'ul, section div' // partial match
   }],
   options: {
-    findPartialMatches: true,
-    recursive: false
+    recursive: false,
+    includePartialMatches: true
   }
 }, {
   name: 'should include matching children when options.recursive is true',
@@ -106,8 +106,8 @@ cases('findRulesForElement', opts => {
     selectorText: 'section div > .child-2' // partial match for one of the children
   }],
   options: {
-    findPartialMatches: true,
-    recursive: true
+    recursive: true,
+    includePartialMatches: true
   }
 }, {
   name: 'should include the html property when options.includeHtml === true',
@@ -404,7 +404,7 @@ cases('formatRule', opts => {
     cssText: '.the .last, .one .is-a, .full-match { color: red }'
   },
   options: {
-    findPartialMatches: true
+    includePartialMatches: true
   },
   result: {
     selector: [['.the', '.last'], ['.one', '.is-a'], ['', '.full-match']],
@@ -417,7 +417,7 @@ cases('formatRule', opts => {
     cssText: '.each .one, .is .a, .partial .match { color: red }'
   },
   options: {
-    findPartialMatches: true
+    includePartialMatches: true
   },
   result: {
     selector: [['.each', '.one'], ['.is', '.a'], ['.partial', '.match']],

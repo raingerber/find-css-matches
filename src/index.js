@@ -4,12 +4,12 @@ const DEFAULT_OPTIONS = {
   recursive: true,
   includeHtml: false,
   includeCss: false,
-  findPartialMatches: true,
+  includePartialMatches: true,
   formatSelector: (a, b) => [a, b]
 }
 
 /**
- * @param {Array|String|Object} styles
+ * @param {String|Object|Array<Object>} styles
  * @returns {Array<Object>}
  */
 function normalizeStyles (styles) {
@@ -23,7 +23,7 @@ function normalizeStyles (styles) {
 }
 
 /**
- * @param {Object|Array<Object>} styles
+ * @param {String|Object|Array<Object>} styles
  * @param {String} html
  * @param {Object} userOptions
  * @returns {Promise<Object>}

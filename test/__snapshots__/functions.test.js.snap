@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`findRulesForElement should include both full and partial matches when options.findPartialMatches is true 1`] = `
+exports[`findRulesForElement should include both full and partial matches when options.includePartialMatches is true 1`] = `
 Object {
   "matches": Array [
     Object {
@@ -97,7 +97,7 @@ Object {
 }
 `;
 
-exports[`findRulesForElement should respect options.findPartialMatches and options.recursive when they are false 1`] = `
+exports[`findRulesForElement should respect options.includePartialMatches and options.recursive when they are false 1`] = `
 Object {
   "matches": Array [
     Object {

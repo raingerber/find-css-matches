@@ -39,20 +39,20 @@ describe('findMatches', () => {
     const result = await findMatches(styles, html, options)
     expect(result).toMatchSnapshot()
   })
-  it('should ignore partial matches when options.findPartialMatches is false', async () => {
+  it('should ignore partial matches when options.includePartialMatches is false', async () => {
     const options = {
       formatSelector,
       recursive: true,
-      findPartialMatches: false
+      includePartialMatches: false
     }
     const result = await findMatches(styles, html, options)
     expect(result).toMatchSnapshot()
   })
-  it('should include partial matches when options.findPartialMatches is true', async () => {
+  it('should include partial matches when options.includePartialMatches is true', async () => {
     const options = {
       formatSelector,
       recursive: true,
-      findPartialMatches: true
+      includePartialMatches: true
     }
     const result = await findMatches(styles, html, options)
     expect(result).toMatchSnapshot()
@@ -61,7 +61,7 @@ describe('findMatches', () => {
     const options = {
       formatSelector,
       recursive: false,
-      findPartialMatches: true
+      includePartialMatches: true
     }
     const styles = `
       body > * {
@@ -78,7 +78,7 @@ describe('findMatches', () => {
     const options = {
       formatSelector,
       recursive: true,
-      findPartialMatches: true
+      includePartialMatches: true
     }
     const styles = `
       .container {
