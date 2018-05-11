@@ -1,8 +1,33 @@
 /* eslint-env jest */
 
-const {findMatches} = require('../__test__/index')
+const {findMatchesFactory, findMatches} = require('../__test__/index')
 
 const formatSelector = (a, b) => [a, b ? `???${b}???` : b]
+
+describe('findMatchesFactory', async () => {
+  const styles = `
+    div {
+      color: red;
+    }
+  `
+  const html = `
+    <div>
+      <div>
+      </div>
+    </div>
+  `
+  it('localOptions take precedence over instanceOptions', async () => {
+    const findMatches = await findMatchesFactory(styles, {recursive: false})
+    const matches = await findMatches(html, {recursive: true})
+    expect(matches.children).toBeInstanceOf(Array)
+  })
+  it('throws when findMatches is called after findMatches.close', async () => {
+    const findMatches = await findMatchesFactory(styles)
+    await findMatches.close()
+    const result = findMatches(html)
+    expect(result).rejects.toMatchSnapshot()
+  })
+})
 
 describe('findMatches', () => {
   const styles = {

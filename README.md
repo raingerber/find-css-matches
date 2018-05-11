@@ -83,7 +83,7 @@ The HTML to search for matches. There should be a single root element.
 
 type: `string | object | array`
 
-Either a CSS string, object, or array of objects that each have a **url**, **path**, or **content** property. Objects are forwarded to [Puppeteer#addStyleTag](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pageaddstyletagoptions)
+Either a CSS string, or an object or array of objects that each have a **url**, **path**, or **content** property. Objects are forwarded to [Puppeteer#addStyleTag](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pageaddstyletagoptions).
 
 **options.recursive**
 
@@ -91,7 +91,7 @@ type: `boolean`
 
 default: `true`
 
-Include matches for the child elements (the returned object will have a **children** property)
+Include matches for the child elements (the returned object will have a **children** property).
 
 **options.includePartialMatches**
 
@@ -99,7 +99,7 @@ type: `boolean`
 
 default: `true`
 
-Include partial matches
+Include partial matches.
 
 **options.formatSelector**
 
@@ -115,7 +115,7 @@ type: `boolean`
 
 default: `false`
 
-Include an HTML string for each element that's visited
+Include an HTML string for each element that's visited.
 
 **options.includeCss**
 
@@ -123,7 +123,27 @@ type: `boolean`
 
 default: `false`
 
-Include the CSS declarations for each matching selector
+Include the CSS declarations for each matching selector.
+
+### findMatchesFactory(styles, [instanceOptions])
+
+Returns a function where the styles have been partially applied:
+
+`findMatches(html, [options])`
+
+In this function, the `options` override the `instanceOptions`, and each call uses the same Puppeteer instance (unlike the default version, which creates a new instance for each call). This can improve performance, and the async `findMatches.close` will destroy the Puppeteer instance.
+
+```js
+const { findMatchesFactory } = require('find-css-matches')
+
+const findMatches = await findMatchesFactory(styles, options)
+
+const matches1 = await findMatches(html1, {/* local options */})
+
+const matches2 = await findMatches(html2, {/* local options */})
+
+await findMatches.close()
+```
 
 ## Partial Matching
 

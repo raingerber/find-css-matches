@@ -1,3 +1,8 @@
+/*
+in the build, these functions are moved into the body of findMatchingRules,
+which is necessary because that function is executed with page.evaluate;
+however, the functions are defined here so that we can unit test them
+*/
 
 /**
  * @param {StyleSheetList|Array<CSSRule>} styles

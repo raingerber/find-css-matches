@@ -1,21 +1,17 @@
-import puppeteer from 'puppeteer'
-
 import {stringifySelectors} from './stringify'
 
 /**
- * @param {Browser} browser
- * @param {Array<Object>} styles
+ * @param {Page} page
  * @param {String} html
- * @returns {Object}
+ * @param {Array<Object>} styles
+ * @returns {Page}
  */
-async function createPage (browser, styles, html) {
-  const page = await browser.newPage()
+async function setPageContent (page, html, styles) {
   await page.setContent(html)
-  for (let style of styles) {
+  for (const style of styles) {
     await page.addStyleTag(style)
   }
 
-  page.on('console', msg => console.log(msg.text()))
   return page
 }
 
@@ -67,8 +63,8 @@ function findMatchingRules (elementQuery, options) {
 
   // eslint-disable-next-line no-undef
   const rules = getCssRules(document.styleSheets)
-  let element = document.querySelector(elementQuery)
 
+  let element = document.querySelector(elementQuery)
   element = element.parentNode.removeChild(element)
 
   // eslint-disable-next-line no-undef
@@ -76,30 +72,22 @@ function findMatchingRules (elementQuery, options) {
 }
 
 /**
- * @param {Array<Object>} styles
+ * @param {Page} page
  * @param {String} html
+ * @param {Array<Object>} styles
  * @param {Object} options
  * @returns {Object}
  */
-async function findMatchesFromPage (styles, html, options) {
+async function findMatchesFromPage (page, html, styles, options) {
   const elementQuery = getElementQuery(html)
-  const browser = await puppeteer.launch()
-  let selectors
-  try {
-    const page = await createPage(browser, styles, html)
-    selectors = await page.evaluate(findMatchingRules, elementQuery, options)
-    selectors = stringifySelectors(selectors, options)
-  } catch (error) {
-    browser.close()
-    throw error
-  }
-
-  browser.close()
-  return selectors
+  await setPageContent(page, html, styles)
+  let matches = await page.evaluate(findMatchingRules, elementQuery, options)
+  matches = stringifySelectors(matches, options)
+  return matches
 }
 
 export {
-  createPage,
+  setPageContent,
   getElementQuery,
   findMatchingRules,
   findMatchesFromPage

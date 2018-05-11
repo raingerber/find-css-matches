@@ -1,3 +1,5 @@
+import puppeteer from 'puppeteer'
+
 import {findMatchesFromPage} from './css-parser'
 
 const DEFAULT_OPTIONS = {
@@ -24,14 +26,48 @@ function normalizeStyles (styles) {
 
 /**
  * @param {String|Object|Array<Object>} styles
- * @param {String} html
- * @param {Object} userOptions
- * @returns {Promise<Object>}
+ * @param {Object} instanceOptions
+ * @returns {Function}
  */
-function findMatches (styles, html, userOptions) {
+async function findMatchesFactory (styles, instanceOptions) {
   const stylesArray = normalizeStyles(styles)
-  const options = Object.assign({}, DEFAULT_OPTIONS, userOptions)
-  return findMatchesFromPage(stylesArray, html, options)
+  let browser = await puppeteer.launch()
+  let page = await browser.newPage()
+  page.on('console', msg => console.log(msg.text()))
+  /**
+   * @param {String} html
+   * @param {Object} localOptions
+   * @returns {Object}
+   */
+  async function findMatches (html, localOptions) {
+    if (!page) {
+      throw new Error('Unable to call findMatches(...) after findMatches.close()')
+    }
+
+    const options = Object.assign({}, DEFAULT_OPTIONS, instanceOptions, localOptions)
+    return findMatchesFromPage(page, html, stylesArray, options)
+  }
+
+  findMatches.close = async () => {
+    await browser.close()
+    browser = null
+    page = null
+  }
+
+  return findMatches
 }
 
-export {findMatches}
+/**
+ * @param {String|Object|Array<Object>} styles
+ * @param {String} html
+ * @param {Object} options
+ * @returns {Object}
+ */
+async function findMatches (styles, html, options) {
+  const _findMatches = await findMatchesFactory(styles, options)
+  const selectors = await _findMatches(html)
+  _findMatches.close()
+  return selectors
+}
+
+export {findMatchesFactory, findMatches}

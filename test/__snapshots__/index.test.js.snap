@@ -197,3 +197,5 @@ Object {
   ],
 }
 `;
+
+exports[`findMatchesFactory throws when findMatches is called after findMatches.close 1`] = `[Error: Unable to call findMatches(...) after findMatches.close()]`;
