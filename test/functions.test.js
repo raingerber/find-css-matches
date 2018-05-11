@@ -12,7 +12,8 @@ const {
   selectorHasDescendentCombinator,
   getElementsUsingCombinator,
   stringifyElement,
-  formatRule
+  formatRule,
+  getMediaText
 } = require('../__test__/index')
 
 function createDom (html, selector) {
@@ -423,4 +424,27 @@ cases('formatRule', opts => {
     selector: [['.each', '.one'], ['.is', '.a'], ['.partial', '.match']],
     isPartialMatch: true
   }
+}])
+
+cases('getMediaText', opts => {
+  expect(getMediaText(opts.rule)).toBe(opts.result)
+}, [{
+  name: 'should return an empty string for a rule with no parentRule',
+  rule: {},
+  result: ''
+}, {
+  name: 'should concatenate mediaText properties from nested media rules',
+  rule: {
+    parentRule: {
+      media: {
+        mediaText: '(max-width: 499px)'
+      },
+      parentRule: {
+        media: {
+          mediaText: '(orientation: landscape)'
+        }
+      }
+    }
+  },
+  result: '(max-width: 499px) AND (orientation: landscape)'
 }])

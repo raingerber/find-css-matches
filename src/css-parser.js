@@ -61,6 +61,8 @@ function findMatchingRules (elementQuery, options) {
 
   // STUB:formatRule
 
+  // STUB:getMediaText
+
   const matches = Function.call.bind(window.Element.prototype.webkitMatchesSelector)
 
   // eslint-disable-next-line no-undef

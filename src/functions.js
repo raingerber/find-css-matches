@@ -1,9 +1,9 @@
 
 /**
- * @param {StyleSheetList} sheets
+ * @param {StyleSheetList|Array<CSSRule>} styles
  * @returns {Array<CSSRule>}
  */
-function getCssRules (sheets) {
+function getCssRules (styles) {
   // https://developer.mozilla.org/en-US/docs/Web/API/CSSRule
   const CSS_RULE_TYPES = [
     /* eslint-disable no-multi-spaces */
@@ -27,15 +27,15 @@ function getCssRules (sheets) {
     /* eslint-enable no-multi-spaces */
   ]
 
-  let rules = []
-  for (let {cssRules} of sheets) {
-    for (let rule of cssRules) {
+  const rules = []
+  for (const {cssRules} of styles) {
+    for (const rule of cssRules) {
       switch (CSS_RULE_TYPES[rule.type]) {
         case 'STYLE_RULE':
           rules.push(rule)
           break
         case 'MEDIA_RULE':
-          rules.push(...rule.cssRules)
+          rules.push(...getCssRules([rule]))
           break
       }
     }
@@ -266,8 +266,9 @@ function cssTextToArray (cssText) {
  */
 function formatRule (selector, rule, options) {
   const ruleObj = {selector}
-  if (rule.parentRule && rule.parentRule.media) {
-    ruleObj.media = rule.parentRule.media.mediaText
+  const media = getMediaText(rule)
+  if (media) {
+    ruleObj.media = media
   }
 
   if (options.includeCss === true) {
@@ -281,6 +282,20 @@ function formatRule (selector, rule, options) {
   return ruleObj
 }
 
+/**
+ * @param {CSSRule} rule
+ * @returns {String}
+ */
+function getMediaText (rule) {
+  const media = []
+  let current = rule
+  while ((current = current.parentRule) && current.media) {
+    media.push(current.media.mediaText)
+  }
+
+  return media.join(' AND ')
+}
+
 export {
   getCssRules,
   stringifyElement,
@@ -291,5 +306,6 @@ export {
   selectorHasDescendentCombinator,
   getElementsUsingCombinator,
   cssTextToArray,
-  formatRule
+  formatRule,
+  getMediaText
 }
