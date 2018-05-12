@@ -58,7 +58,7 @@ const result = await findMatches(styles, html, options)
 
 ### findMatches(styles, html, [options])
 
-Returns a promise that resolves to an object:
+Returns a promise that resolves to an object, or an array of objects if the HTML has multiple root elements.
 
 ```
 {
@@ -77,7 +77,7 @@ Returns a promise that resolves to an object:
 
 type: `string`
 
-The HTML to search for matches. There should be a single root element.
+The HTML to search for matches.
 
 **styles**
 

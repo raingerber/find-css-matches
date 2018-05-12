@@ -1,6 +1,6 @@
 import puppeteer from 'puppeteer'
 
-import {findMatchesFromPage} from './css-parser'
+import {getOpeningTagName, findMatchesFromPage} from './css-parser'
 
 const DEFAULT_OPTIONS = {
   recursive: true,
@@ -25,6 +25,17 @@ function normalizeStyles (styles) {
 }
 
 /**
+ * @param {Object} options
+ * @param {String} html
+ * @returns {Object}
+ */
+function mergeOptions (options, html) {
+  const tagName = getOpeningTagName(html)
+  const isHtmlOrBodyTag = tagName === 'html' || tagName === 'body'
+  return Object.assign({}, DEFAULT_OPTIONS, options, {tagName, isHtmlOrBodyTag})
+}
+
+/**
  * @param {String|Object|Array<Object>} styles
  * @param {Object} instanceOptions
  * @returns {Function}
@@ -44,8 +55,8 @@ async function findMatchesFactory (styles, instanceOptions) {
       throw new Error('Unable to call findMatches(...) after findMatches.close()')
     }
 
-    const options = Object.assign({}, DEFAULT_OPTIONS, instanceOptions, localOptions)
-    return findMatchesFromPage(page, html, stylesArray, options)
+    const userOptions = Object.assign({}, instanceOptions, localOptions)
+    return findMatchesFromPage(page, html, stylesArray, mergeOptions(userOptions, html))
   }
 
   findMatches.close = async () => {
@@ -70,4 +81,4 @@ async function findMatches (styles, html, options) {
   return selectors
 }
 
-export {findMatchesFactory, findMatches}
+export {mergeOptions, findMatchesFactory, findMatches}

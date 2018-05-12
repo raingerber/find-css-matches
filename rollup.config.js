@@ -21,7 +21,7 @@ const config = [{
         replace: (fullMatch, whitespace, id) => {
           const fn = functions[id]
           if (!fn) {
-            throw new Error(`The ${id} function is not defined.`)
+            throw new Error(`The ${id} function is not defined`)
           }
 
           let str = fn.toString()
@@ -43,7 +43,7 @@ const config = [{
   external: [
     'puppeteer'
   ],
-  input: './src/index.js',
+  input: './index.js',
   output: [{
     file: pkg.main,
     format: 'cjs'

@@ -1,5 +1,41 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`findMatches should find matches for multiple root elements 1`] = `
+Array [
+  Object {
+    "children": Array [],
+    "matches": Array [],
+  },
+  Object {
+    "children": Array [],
+    "matches": Array [
+      Object {
+        "selector": ".b",
+      },
+      Object {
+        "selector": "div + div",
+      },
+    ],
+  },
+  Object {
+    "children": Array [
+      Object {
+        "children": Array [],
+        "matches": Array [],
+      },
+    ],
+    "matches": Array [
+      Object {
+        "selector": ".c",
+      },
+      Object {
+        "selector": "div + div",
+      },
+    ],
+  },
+]
+`;
+
 exports[`findMatches should ignore partial matches when options.includePartialMatches is false 1`] = `
 Object {
   "children": Array [
@@ -117,17 +153,6 @@ Object {
 }
 `;
 
-exports[`findMatches should not return "body >" inside a full match 1`] = `
-Object {
-  "matches": Array [
-    Object {
-      "isPartialMatch": true,
-      "selector": "body > ???*???",
-    },
-  ],
-}
-`;
-
 exports[`findMatches should work for a complex bit of html and css 1`] = `
 Object {
   "children": Array [
@@ -198,4 +223,4 @@ Object {
 }
 `;
 
-exports[`findMatchesFactory throws when findMatches is called after findMatches.close 1`] = `[Error: Unable to call findMatches(...) after findMatches.close()]`;
+exports[`findMatchesFactory throws when findMatches(...) is called after findMatches.close() 1`] = `[Error: Unable to call findMatches(...) after findMatches.close()]`;

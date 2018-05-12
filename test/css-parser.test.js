@@ -1,10 +1,12 @@
 /* eslint-env jest */
 
-const {getElementQuery} = require('../__test__/index')
+const {getOpeningTagName} = require('../__test__/index')
 
-describe('getElementQuery', () => {
-  it('should return a selector using the first tagName from the string', () => {
-    const tagName = getElementQuery('<div><span></span></div>')
-    expect(tagName).toBe('div:first-of-type')
+describe('getOpeningTagName', () => {
+  it('should return the first html tagName from the string', () => {
+    expect(getOpeningTagName('<div><span></span></div>')).toBe('div')
+  })
+  it('should throw if the string does not contain an html tag', () => {
+    expect(() => getOpeningTagName('<!-- <div></div> -->')).toThrowErrorMatchingSnapshot()
   })
 })

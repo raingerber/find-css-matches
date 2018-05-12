@@ -4,6 +4,7 @@ const {JSDOM} = require('jsdom')
 const cases = require('jest-in-case')
 
 const {
+  mergeOptions,
   getCssRules,
   findRulesForElement,
   testIfSelectorIsMatch,
@@ -16,11 +17,11 @@ const {
   getMediaText
 } = require('../__test__/index')
 
-function createDom (html, selector) {
+function createDom (html, selector, options) {
   const dom = new JSDOM(html)
   const element = dom.window.document.querySelector(selector)
   const matches = Function.call.bind(dom.window.Element.prototype.matches)
-  return {dom, element, matches}
+  return {dom, element, matches, options: mergeOptions(options, html)}
 }
 
 describe('getCssRules', () => {
@@ -74,8 +75,8 @@ cases('findRulesForElement', opts => {
       <div class="child-3">zzz</div>
     </div>
   `
-  const {matches, element} = createDom(html, '.container')
-  const rules = findRulesForElement(matches, opts.rules, element, opts.options, 0)
+  const {matches, element, options} = createDom(html, '.container', opts.options)
+  const rules = findRulesForElement(matches, opts.rules, element, options, 0)
   expect(rules).toMatchSnapshot()
 }, [{
   name: 'should respect options.includePartialMatches and options.recursive when they are false',

@@ -19,9 +19,10 @@ describe('findMatchesFactory', async () => {
   it('localOptions take precedence over instanceOptions', async () => {
     const findMatches = await findMatchesFactory(styles, {recursive: false})
     const matches = await findMatches(html, {recursive: true})
+    await findMatches.close()
     expect(matches.children).toBeInstanceOf(Array)
   })
-  it('throws when findMatches is called after findMatches.close', async () => {
+  it('throws when findMatches(...) is called after findMatches.close()', async () => {
     const findMatches = await findMatchesFactory(styles)
     await findMatches.close()
     const result = findMatches(html)
@@ -82,23 +83,50 @@ describe('findMatches', () => {
     const result = await findMatches(styles, html, options)
     expect(result).toMatchSnapshot()
   })
-  it('should not return "body >" inside a full match', async () => {
+  it('should find matches for multiple root elements', async () => {
     const options = {
-      formatSelector,
-      recursive: false,
-      includePartialMatches: true
+      recursive: true,
+      includePartialMatches: false
     }
     const styles = `
-      body > * {
-        color: green;
+      .b {
+        font-size: 2px;
+      }
+      .c {
+        font-size: 3px;
+      }
+      div + div {
+        color: purple;
       }
     `
     const html = `
-      <div></div>
+      <div class="a"></div>
+      <div class="b"></div>
+      <div class="c">
+        <div class="d"></div>
+      </div>
     `
     const result = await findMatches(styles, html, options)
     expect(result).toMatchSnapshot()
   })
+  // TODO deal with edge cases involving the body and html tags
+  // it('should not return "body >" inside a full match', async () => {
+  //   const options = {
+  //     formatSelector,
+  //     recursive: false,
+  //     includePartialMatches: true
+  //   }
+  //   const styles = `
+  //     body > * {
+  //       color: green;
+  //     }
+  //   `
+  //   const html = `
+  //     <div></div>
+  //   `
+  //   const result = await findMatches(styles, html, options)
+  //   expect(result).toMatchSnapshot()
+  // })
   it('should work for a complex bit of html and css', async () => {
     const options = {
       formatSelector,

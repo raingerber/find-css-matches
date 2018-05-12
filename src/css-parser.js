@@ -20,23 +20,22 @@ async function setPageContent (page, html, styles) {
  * @returns {String}
  * @throws if the string does not contain an HTML tag
  */
-function getElementQuery (html) {
+function getOpeningTagName (html) {
   const htmlWithNoComments = html.replace(/<!--[\s\S]*?-->/g, '')
   const match = /^\s*<\s*([a-z]+)/i.exec(htmlWithNoComments)
   if (match) {
-    return `${match[1].toLowerCase()}:first-of-type`
+    return match[1].toLowerCase()
   }
 
-  throw new Error('Input HTML does not contain a valid tag.')
+  throw new Error('Input HTML does not contain a valid tag')
 }
 
 /**
  * needs to be run in a browser context
- * @param {String} elementQuery
  * @param {Object} options
  * @returns {Array<Object>}
  */
-function findMatchingRules (elementQuery, options) {
+function findMatchingRules (options) {
   // STUB:getCssRules
 
   // STUB:stringifyElement
@@ -64,11 +63,19 @@ function findMatchingRules (elementQuery, options) {
   // eslint-disable-next-line no-undef
   const rules = getCssRules(document.styleSheets)
 
-  let element = document.querySelector(elementQuery)
-  element = element.parentNode.removeChild(element)
+  let elements
+  if (options.isHtmlOrBodyTag) {
+    elements = [document.querySelector(options.tagName)]
+  } else {
+    elements = [...document.body.children]
+  }
 
-  // eslint-disable-next-line no-undef
-  return findRulesForElement(matches, rules, element, options, 0)
+  const result = elements.map(element => {
+    // eslint-disable-next-line no-undef
+    return findRulesForElement(matches, rules, element, options, 0)
+  })
+
+  return Promise.all(result)
 }
 
 /**
@@ -79,16 +86,19 @@ function findMatchingRules (elementQuery, options) {
  * @returns {Object}
  */
 async function findMatchesFromPage (page, html, styles, options) {
-  const elementQuery = getElementQuery(html)
   await setPageContent(page, html, styles)
-  let matches = await page.evaluate(findMatchingRules, elementQuery, options)
-  matches = stringifySelectors(matches, options)
+  let matches = await page.evaluate(findMatchingRules, options)
+  matches = matches.map(match => stringifySelectors(match, options))
+  if (matches.length === 1) {
+    matches = matches[0]
+  }
+
   return matches
 }
 
 export {
   setPageContent,
-  getElementQuery,
+  getOpeningTagName,
   findMatchingRules,
   findMatchesFromPage
 }

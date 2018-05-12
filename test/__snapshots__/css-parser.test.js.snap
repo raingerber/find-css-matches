@@ -1,0 +1,3 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`getOpeningTagName should throw if the string does not contain an html tag 1`] = `"Input HTML does not contain a valid tag"`;
