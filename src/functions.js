@@ -292,13 +292,17 @@ function formatRule (selector, rule, options) {
  * @returns {String}
  */
 function getMediaText (rule) {
-  const media = []
+  let media = ''
   let current = rule
   while ((current = current.parentRule) && current.media) {
-    media.push(current.media.mediaText)
+    if (media) {
+      media = `${current.media.mediaText} AND ${media}`
+    } else {
+      media = current.media.mediaText
+    }
   }
 
-  return media.join(' AND ')
+  return media
 }
 
 export {

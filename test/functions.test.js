@@ -447,5 +447,5 @@ cases('getMediaText', opts => {
       }
     }
   },
-  result: '(max-width: 499px) AND (orientation: landscape)'
+  result: '(orientation: landscape) AND (max-width: 499px)'
 }])
