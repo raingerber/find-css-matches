@@ -8,7 +8,7 @@ const {
   getCssRules,
   stringifyElement,
   findRulesForElement,
-  findPartialMatch,
+  splitPartOfSelector,
   combinatorQuery,
   getMediaText,
   formatRule
@@ -23,7 +23,7 @@ function createDom (html, selector, options) {
 
 describe('getCssRules', () => {
   it('should return an array with each cssRule in order', () => {
-    const sheets = [{
+    const styles = [{
       cssRules: [{
         type: 1,
         cssText: 'one'
@@ -43,7 +43,7 @@ describe('getCssRules', () => {
         cssText: 'four'
       }]
     }]
-    expect(getCssRules(sheets)).toEqual([
+    expect(getCssRules(styles)).toEqual([
       {
         type: 1,
         cssText: 'one'
@@ -117,7 +117,7 @@ cases('findRulesForElement', opts => {
   }
 }])
 
-cases('findPartialMatch', opts => {
+cases('splitPartOfSelector with includePartialMatches === true', opts => {
   const html = `
     <div class="container">
       <div class="child-1">xxx</div>
@@ -130,7 +130,10 @@ cases('findPartialMatch', opts => {
     </div>
   `
   const {matches, element} = createDom(html, opts.selector)
-  const result = findPartialMatch(matches, element, ...opts.args)
+  const result = splitPartOfSelector(matches, element, ...opts.args, {
+    includePartialMatches: true
+  })
+
   expect(result).toEqual(opts.result)
 }, [{
   name: 'full match for child when using "+"',
@@ -188,43 +191,54 @@ cases('combinatorQuery', opts => {
       Text node to ignore
       <div class="child-2">yyy</div>
       Text node to ignore
-      <div class="child-3">zzz</div>
+      <div class="child-3">
+        <div class="grand-child-1">zzz</div>
+      </div>
     </div>
   `
   const {element} = createDom(html, opts.selector)
   const result = combinatorQuery(element, ...opts.args)
-  const classNames = result.elements.map(el => el.getAttribute('class'))
-  expect(classNames).toEqual(opts.classNames)
+  const identifiers = result.elements.map(el => {
+    return el.getAttribute('class') || el.tagName
+  })
+
+  expect(identifiers).toEqual(opts.identifiers)
   expect(result.depth).toEqual(opts.finalDepth)
 }, [{
   name: 'should return the parent element for the > combinator',
   selector: '.child-3',
-  args: ['>', 1],
-  classNames: ['container'],
+  args: ['>', 1], // combinator, depth
+  identifiers: ['container'],
   finalDepth: 0 // depth should decrease by 1
+}, {
+  name: 'should return the ancestor elements for the " " combinator',
+  selector: '.grand-child-1',
+  args: [' ', 2],
+  identifiers: ['child-3', 'container', 'BODY', 'HTML'],
+  finalDepth: 1 // depth should decrease by 1
 }, {
   name: 'should return the previous sibling element for the + combinator',
   selector: '.child-3',
   args: ['+', 1],
-  classNames: ['child-2'],
+  identifiers: ['child-2'],
   finalDepth: 1
 }, {
   name: 'should return the previous sibling elements for the ~ combinator',
   selector: '.child-3',
   args: ['~', 1],
-  classNames: ['child-1', 'child-2'],
+  identifiers: ['child-1', 'child-2'],
   finalDepth: 1
 }, {
   name: 'should return an empty array for the + combinator when no previous sibling is found',
   selector: '.child-1',
   args: ['+', 1],
-  classNames: [],
+  identifiers: [],
   finalDepth: 1
 }, {
   name: 'should return an empty array for the ~ combinator when no previous siblings are found',
   selector: '.child-1',
   args: ['~', 1],
-  classNames: [],
+  identifiers: [],
   finalDepth: 1
 }])
 
@@ -238,7 +252,7 @@ describe('stringifyElement', () => {
 })
 
 cases('formatRule', opts => {
-  const result = formatRule(opts.selector, opts.rule, opts.options)
+  const result = formatRule(opts.rule, opts.selector, opts.options)
   expect(result).toEqual(opts.result)
 }, [{
   name: 'should return the selector without html, css, media, or isPartialMatch properties',

@@ -1,5 +1,133 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`edge cases involving <html> and <body> should find matches for the <body> element 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [],
+      "matches": Array [
+        Object {
+          "isPartialMatch": false,
+          "selector": "???body > div???",
+        },
+      ],
+    },
+  ],
+  "matches": Array [
+    Object {
+      "isPartialMatch": false,
+      "selector": "???body???",
+    },
+    Object {
+      "isPartialMatch": false,
+      "selector": "???html body???",
+    },
+    Object {
+      "isPartialMatch": true,
+      "selector": "html.class ???body???",
+    },
+  ],
+}
+`;
+
+exports[`edge cases involving <html> and <body> should include "body >" in a full match when the snippet includes <body> 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [],
+      "matches": Array [
+        Object {
+          "selector": "???body > *???",
+        },
+      ],
+    },
+  ],
+  "matches": Array [],
+}
+`;
+
+exports[`edge cases involving <html> and <body> should not return "body >" in a full match when the snippet does not include <body> 1`] = `
+Object {
+  "matches": Array [
+    Object {
+      "isPartialMatch": true,
+      "selector": "body > ???*???",
+    },
+  ],
+}
+`;
+
+exports[`edge cases involving <html> and <body> should not return a partial match for "body div *" or body > *" on the <body> tag itself 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [],
+      "matches": Array [
+        Object {
+          "isPartialMatch": false,
+          "selector": "???body > *???",
+        },
+      ],
+    },
+  ],
+  "matches": Array [],
+}
+`;
+
+exports[`edge cases involving <html> and <body> should work for a "snippet" with <html> as the root element 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [],
+          "matches": Array [],
+        },
+      ],
+      "matches": Array [],
+    },
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            Object {
+              "children": Array [],
+              "matches": Array [],
+            },
+            Object {
+              "children": Array [],
+              "matches": Array [
+                Object {
+                  "isPartialMatch": false,
+                  "selector": "???body div + div???",
+                },
+              ],
+            },
+          ],
+          "matches": Array [
+            Object {
+              "isPartialMatch": false,
+              "selector": "???html section???",
+            },
+            Object {
+              "isPartialMatch": false,
+              "selector": "???body > section???",
+            },
+          ],
+        },
+      ],
+      "matches": Array [],
+    },
+  ],
+  "matches": Array [
+    Object {
+      "isPartialMatch": false,
+      "selector": "???html???",
+    },
+  ],
+}
+`;
+
 exports[`findMatches should find matches for multiple root elements 1`] = `
 Array [
   Object {

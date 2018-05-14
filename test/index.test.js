@@ -109,24 +109,6 @@ describe('findMatches', () => {
     const result = await findMatches(styles, html, options)
     expect(result).toMatchSnapshot()
   })
-  // TODO deal with edge cases involving the body and html tags
-  // it('should not return "body >" inside a full match', async () => {
-  //   const options = {
-  //     formatSelector,
-  //     recursive: false,
-  //     includePartialMatches: true
-  //   }
-  //   const styles = `
-  //     body > * {
-  //       color: green;
-  //     }
-  //   `
-  //   const html = `
-  //     <div></div>
-  //   `
-  //   const result = await findMatches(styles, html, options)
-  //   expect(result).toMatchSnapshot()
-  // })
   it('should work for a complex bit of html and css', async () => {
     const options = {
       formatSelector,
@@ -168,6 +150,146 @@ describe('findMatches', () => {
           </ul>
         </div>
       </section>
+    `
+    const result = await findMatches(styles, html, options)
+    expect(result).toMatchSnapshot()
+  })
+})
+
+describe('edge cases involving <html> and <body>', () => {
+  it('should find matches for the <body> element', async () => {
+    const options = {
+      formatSelector,
+      recursive: true,
+      includePartialMatches: true
+    }
+    const styles = `
+      ${/* full match */''}
+      body {
+        font-size: 50px;
+      }
+      ${/* full match */''}
+      html body {
+        background: yellow;
+      }
+      ${/* partial match */''}
+      html.class body {
+        background: yellow;
+      }
+      ${/* full match for child */''}
+      body > div {
+        color: magenta;
+      }
+      ${/* not a match */''}
+      div ~ body {
+        color: green;
+      }
+    `
+    const html = `
+      <body>
+        <div></div>
+      </body>
+    `
+    const result = await findMatches(styles, html, options)
+    expect(result).toMatchSnapshot()
+  })
+  it('should not return "body >" in a full match when the snippet does not include <body>', async () => {
+    const options = {
+      formatSelector,
+      recursive: false,
+      includePartialMatches: true
+    }
+    const styles = `
+      body > * {
+        color: green;
+      }
+    `
+    const html = `
+      <div></div>
+    `
+    const result = await findMatches(styles, html, options)
+    expect(result).toMatchSnapshot()
+  })
+  it('should include "body >" in a full match when the snippet includes <body>', async () => {
+    const options = {
+      formatSelector,
+      recursive: true,
+      includePartialMatches: false
+    }
+    const styles = `
+      body > * {
+        color: green;
+      }
+    `
+    const html = `
+      <body>
+        <div></div>
+      </body>
+    `
+    const result = await findMatches(styles, html, options)
+    expect(result).toMatchSnapshot()
+  })
+  it('should not return a partial match for "body div *" or body > *" on the <body> tag itself', async () => {
+    const options = {
+      formatSelector,
+      recursive: true,
+      includePartialMatches: true
+    }
+    const styles = `
+      ${/* this should NOT match the <div> */''}
+      body div * {
+        color: blue;
+      }
+      body > * {
+        color: green;
+      }
+    `
+    const html = `
+      <body>
+        <div></div>
+      </body>
+    `
+    const result = await findMatches(styles, html, options)
+    expect(result).toMatchSnapshot()
+  })
+  it('should work for a "snippet" with <html> as the root element', async () => {
+    const options = {
+      formatSelector,
+      recursive: true,
+      includePartialMatches: true
+    }
+    const styles = `
+      ${/* full match */''}
+      html {
+        color: green
+      }
+      ${/* not a match */''}
+      div ~ html {
+        color: orange;
+      }
+      ${/* full match */''}
+      html section {
+        color: yellow
+      }
+      ${/* full match */''}
+      body > section {
+        color: magenta;
+      }
+      ${/* full match */''}
+      body div + div {
+        color: black;
+      }
+    `
+    const html = `
+      <html>
+        ${/* puppeteer will add the <head> */''}
+        <body>
+          <section>
+            <div></div>
+            <div></div>
+          </section>
+        </body>
+      </html>
     `
     const result = await findMatches(styles, html, options)
     expect(result).toMatchSnapshot()

@@ -36,15 +36,29 @@ function getOpeningTagName (html) {
  * @returns {Array<Object>}
  */
 function findMatchingRules (options) {
-  // STUB:getCssRules
+  // STUB:isCombinator
+
+  // STUB:isHtmlSelector
+
+  // STUB:isBodySelector
 
   // STUB:stringifyElement
+
+  // STUB:getCssRules
 
   // STUB:findRulesForElement
 
   // STUB:parseRuleForElement
 
-  // STUB:findPartialMatch
+  // STUB:splitPartOfSelector
+
+  // STUB:isMatchable
+
+  // STUB:isFullMatchable
+
+  // STUB:selectorStringToArray
+
+  // STUB:selectorArrayToString
 
   // STUB:findMatchIndex
 
