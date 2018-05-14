@@ -42,15 +42,13 @@ function findMatchingRules (options) {
 
   // STUB:findRulesForElement
 
-  // STUB:testIfSelectorIsMatch
+  // STUB:parseRuleForElement
 
-  // STUB:findMatchingPartOfSelector
+  // STUB:findPartialMatch
 
-  // STUB:combinatorPreventsMatch
+  // STUB:findMatchIndex
 
-  // STUB:selectorHasDescendentCombinator
-
-  // STUB:getElementsUsingCombinator
+  // STUB:combinatorQuery
 
   // STUB:cssTextToArray
 

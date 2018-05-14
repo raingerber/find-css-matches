@@ -131,6 +131,7 @@ describe('findMatches', () => {
     const options = {
       formatSelector,
       recursive: true,
+      includeHtml: true,
       includePartialMatches: true
     }
     const styles = `

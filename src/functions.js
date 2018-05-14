@@ -69,26 +69,8 @@ function stringifyElement (element) {
 function findRulesForElement (matches, rules, element, options, depth) {
   const result = {
     matches: rules.reduce((acc, rule) => {
-      let hasMatch = false
-      const selector = rule.selectorText.split(/\s*,\s*/).map(part => {
-        let parsed
-        if (options.includePartialMatches) {
-          parsed = findMatchingPartOfSelector(matches, element, part, depth)
-        } else {
-          parsed = testIfSelectorIsMatch(matches, element, part)
-        }
-
-        if (parsed[1]) {
-          hasMatch = true
-        }
-
-        return parsed
-      })
-
-      if (hasMatch) {
-        acc.push(formatRule(selector, rule, options))
-      }
-
+      const selector = parseRuleForElement(matches, rule, element, options, depth)
+      selector && acc.push(formatRule(selector, rule, options))
       return acc
     }, [])
   }
@@ -109,16 +91,38 @@ function findRulesForElement (matches, rules, element, options, depth) {
 
 /**
  * @param {Function} matches
+ * @param {CSSRule} rule
  * @param {DOMElement} element
- * @param {String} selector
- * @returns {Array<String>}
+ * @param {Object} options
+ * @param {Number} depth
+ * @returns {Number}
  */
-function testIfSelectorIsMatch (matches, element, selector) {
-  if (matches(element, selector)) {
-    return ['', selector]
+function parseRuleForElement (matches, rule, element, options, depth) {
+  let hasMatch = false
+  // 'div, div > div' => ['div', 'div > div']
+  const parts = rule.selectorText.split(/\s*,\s*/)
+  const result = parts.map(part => {
+    let split
+    if (matches(element, part)) {
+      split = ['', part]
+    } else if (options.includePartialMatches) {
+      split = findPartialMatch(matches, element, part, depth)
+    } else {
+      split = [part, '']
+    }
+
+    if (split[1]) {
+      hasMatch = true
+    }
+
+    return split
+  })
+
+  if (hasMatch) {
+    return result
   }
 
-  return [selector, '']
+  return null
 }
 
 /**
@@ -132,94 +136,58 @@ function testIfSelectorIsMatch (matches, element, selector) {
  * @param {Number} depth
  * @returns {Array<String>}
  */
-function findMatchingPartOfSelector (matches, element, selector, depth) {
+function findPartialMatch (matches, element, selector, depth) {
+  // ['.a > .b'] => ['.a', '>', '.b']
   const parts = selector.split(/\s+/)
-  for (let i = 0, part = parts[i]; part; part = parts[++i]) {
-    if (/[>+~]/.test(part)) {
-      if (combinatorPreventsMatch(matches, element, parts, i, depth)) {
-        break
-      }
-
-      continue
-    }
-
-    const matched = parts.slice(i).join(' ')
-    if (matches(element, matched)) {
-      const unmatched = parts.slice(0, i).join(' ')
-      return [unmatched, matched]
-    }
-  }
-
-  return [selector, '']
+  const index = findMatchIndex(matches, element, depth, parts)
+  const unmatched = parts.slice(0, index).join(' ')
+  const matched = parts.slice(index).join(' ')
+  return [unmatched, matched]
 }
 
 /**
  * @param {Function} matches
  * @param {DOMElement} element
- * @param {Array<String>} parts
- * @param {Number} index - index of the combinator in question
  * @param {Number} elementDepth
- * @returns {Boolean}
- */
-function combinatorPreventsMatch (matches, element, parts, index, elementDepth) {
-  if (elementDepth < 1) {
-    return false
-  }
-
-  if (selectorHasDescendentCombinator(parts, index)) {
-    return false
-  }
-
-  /*
-  if we're testing selectors against the element at depth 2
-  the following selector is a potential match, because
-  it has enough > combinators to reach that depth
-
-  div > div > div { ... }
-
-  <div depth="0" />
-    <div depth="1" />
-      <div depth="2" />
-  */
-  let depthDiff = elementDepth
-
-  // combinators won't appear consecutively,
-  // so we can start the search at index + 2
-  for (let i = index + 2; i < parts.length; i++) {
-    if (parts[i] === '>') {
-      depthDiff--
-    }
-  }
-
-  if (depthDiff < 1) {
-    return false
-  }
-
-  const selector = parts.slice(0, index).join(' ')
-  const {elements, depth} = getElementsUsingCombinator(element, parts[index], elementDepth)
-  return !elements.some(node => findMatchingPartOfSelector(matches, node, selector, depth)[1])
-}
-
-/**
- * if index is -1, search the entire selector
- * otherwise, begin searching at the given index,
- * but in that case parts[i] must be a combinator
  * @param {Array<String>} parts
- * @param {Number} index
- * @returns {Boolean}
+ * @returns {Number}
  */
-function selectorHasDescendentCombinator (parts, index) {
-  for (let i = index + 1; i < parts.length - 1; i++) {
-    // descendent combinators are implied when
-    // 2 consecutive elements are not > + or ~
-    if (/[>+~]/.test(parts[i + 1])) {
-      i++
-    } else {
-      return true
-    }
+function findMatchIndex (matches, element, elementDepth, parts) {
+  const lastIndex = parts.length - 1
+  if (!matches(element, parts[lastIndex])) {
+    return parts.length
   }
 
-  return false
+  const index = lastIndex - 1
+  const part = parts[index]
+  if (part === '>' || part === '+' || part === '~') {
+    if (elementDepth === 0 && part === '>') {
+      return lastIndex
+    }
+
+    const {elements, depth} = combinatorQuery(element, part, elementDepth)
+    if (elements.length === 0) {
+      if (elementDepth) {
+        return parts.length
+      } else {
+        return lastIndex
+      }
+    }
+
+    const subParts = parts.slice(0, index)
+    const indices = elements.map(element => {
+      return findMatchIndex(matches, element, depth, subParts)
+    })
+
+    const subIndex = Math.min(...indices)
+    if (subIndex === subParts.length) {
+      return parts.length
+    }
+
+    return subIndex
+  }
+
+  return lastIndex
 }
 
 /**
@@ -228,7 +196,7 @@ function selectorHasDescendentCombinator (parts, index) {
  * @param {Number} depth
  * @returns {Object}
  */
-function getElementsUsingCombinator (element, combinator, depth) {
+function combinatorQuery (element, combinator, depth) {
   const elements = []
   let depthOfElements = depth
   if (combinator === '>') {
@@ -264,6 +232,24 @@ function cssTextToArray (cssText) {
 }
 
 /**
+ * @param {CSSRule} rule
+ * @returns {String}
+ */
+function getMediaText (rule) {
+  let media = ''
+  let current = rule
+  while ((current = current.parentRule) && current.media) {
+    if (media) {
+      media = `${current.media.mediaText} AND ${media}`
+    } else {
+      media = current.media.mediaText
+    }
+  }
+
+  return media
+}
+
+/**
  * @param {Array<Array<String>>} selector
  * @param {CSSRule} rule
  * @param {Object} options
@@ -287,34 +273,15 @@ function formatRule (selector, rule, options) {
   return ruleObj
 }
 
-/**
- * @param {CSSRule} rule
- * @returns {String}
- */
-function getMediaText (rule) {
-  let media = ''
-  let current = rule
-  while ((current = current.parentRule) && current.media) {
-    if (media) {
-      media = `${current.media.mediaText} AND ${media}`
-    } else {
-      media = current.media.mediaText
-    }
-  }
-
-  return media
-}
-
 export {
   getCssRules,
   stringifyElement,
   findRulesForElement,
-  testIfSelectorIsMatch,
-  findMatchingPartOfSelector,
-  combinatorPreventsMatch,
-  selectorHasDescendentCombinator,
-  getElementsUsingCombinator,
+  parseRuleForElement,
+  findPartialMatch,
+  findMatchIndex,
+  combinatorQuery,
   cssTextToArray,
-  formatRule,
-  getMediaText
+  getMediaText,
+  formatRule
 }

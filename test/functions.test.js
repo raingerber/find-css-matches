@@ -6,15 +6,12 @@ const cases = require('jest-in-case')
 const {
   mergeOptions,
   getCssRules,
-  findRulesForElement,
-  testIfSelectorIsMatch,
-  findMatchingPartOfSelector,
-  combinatorPreventsMatch,
-  selectorHasDescendentCombinator,
-  getElementsUsingCombinator,
   stringifyElement,
-  formatRule,
-  getMediaText
+  findRulesForElement,
+  findPartialMatch,
+  combinatorQuery,
+  getMediaText,
+  formatRule
 } = require('../__test__/index')
 
 function createDom (html, selector, options) {
@@ -120,26 +117,7 @@ cases('findRulesForElement', opts => {
   }
 }])
 
-describe('testIfSelectorIsMatch', () => {
-  it('should return a "matching" array when matches returns true', () => {
-    const matches = (element, selector) => {
-      return element === 'dummy' && selector === 'div'
-    }
-    const result = testIfSelectorIsMatch(matches, 'dummy', 'div')
-    // in a "matching" array, the second element is a non-empty string
-    expect(result).toEqual(['', 'div'])
-  })
-  it('should return a "non-matching" array when matches returns false', () => {
-    const matches = (element, selector) => {
-      return !(element === 'dummy' && selector === 'div')
-    }
-    const result = testIfSelectorIsMatch(matches, 'dummy', 'div')
-    // in a "non-matching" array, the second element is an empty string
-    expect(result).toEqual(['div', ''])
-  })
-})
-
-cases('findMatchingPartOfSelector', opts => {
+cases('findPartialMatch', opts => {
   const html = `
     <div class="container">
       <div class="child-1">xxx</div>
@@ -152,21 +130,9 @@ cases('findMatchingPartOfSelector', opts => {
     </div>
   `
   const {matches, element} = createDom(html, opts.selector)
-  const result = findMatchingPartOfSelector(matches, element, ...opts.args)
+  const result = findPartialMatch(matches, element, ...opts.args)
   expect(result).toEqual(opts.result)
 }, [{
-  name: "returns ['', ''] when selector is an empty string",
-  selector: '.container',
-  args: ['', 0],
-  result: ['', '']
-},
-// full matches for child elements (the function does not *only* return partial matches)
-{
-  name: 'full match for child when using " "',
-  selector: '.child-3',
-  args: ['.container .child-3', 1],
-  result: ['', '.container .child-3']
-}, {
   name: 'full match for child when using "+"',
   selector: '.child-3',
   args: ['.child-2 + .child-3', 1],
@@ -198,11 +164,7 @@ cases('findMatchingPartOfSelector', opts => {
   selector: '.grandchild-1',
   args: ['#a .b > .c ~ .d .grandchild-1', 2],
   result: ['#a .b > .c ~ .d', '.grandchild-1']
-},
-// non-matching selectors when depth === 1
-// combinatorPreventsMatch prevents these selectors
-// from being incorrectly treated as partial matches
-{
+}, {
   name: 'non-matching selector for child when using "+"',
   selector: '.child-3',
   args: ['.child-1 + .child-3', 1],
@@ -219,87 +181,7 @@ cases('findMatchingPartOfSelector', opts => {
   result: ['.null ~ .child-3', '']
 }])
 
-// NOTE that many of the selectors tested here are NOT matches,
-// but this tests an intermediate check before the selector can
-// be disqualified (so, we're testing to avoid false negatives)
-cases('combinatorPreventsMatch', opts => {
-  const html = `
-    <div class="container">
-      <div class="child-1">xxx</div>
-      <div class="child-2">yyy</div>
-      <div class="child-3">
-        <div class="grandchild-1">zzz</div>
-      </div>
-    </div>
-  `
-  const {matches, element} = createDom(html, '.child-3')
-  const result = combinatorPreventsMatch(matches, element, ...opts.args)
-  expect(result).toBe(opts.result)
-}, [{
-  name: 'false when depth is less than 1',
-  args: [null, 0, 0], // parts, index, depth
-  result: false
-}, {
-  name: 'false when the array contains enough ">" combinators',
-  args: [['.a', '>', '.b', '>', '.c', '>', '.d', '>', '.e'], 1, 3],
-  result: false
-}, {
-  name: 'false when a descendent combinator follows the index',
-  // the descendent is implied between the .c and .d elements
-  args: [['.a', '>', '.b', '+', '.c', '.d'], 1, 50],
-  result: false
-}, {
-  name: 'false for > when parent matches the selector',
-  args: [['.could-exist', '.container', '>', '.blah-blah-blah'], 2, 1],
-  result: false
-}, {
-  name: 'true for > when parent does *not* match the selector',
-  args: [['.null', '>', '.blah-blah-blah'], 1, 1],
-  result: true
-}, {
-  name: 'false for + when previous sibling matches the selector',
-  args: [['.could-exist', '.child-2', '+', '.child-3'], 2, 1],
-  result: false
-}, {
-  name: 'true for + when previous sibling does *not* match the selector',
-  args: [['.null', '+', '.child-2'], 1, 1],
-  result: true
-}, {
-  name: 'false for ~ when a previous sibling matches the selector',
-  args: [['.could-exist', '.child-1', '~', '.child-3'], 2, 1],
-  result: false
-}, {
-  name: 'true for ~ when previous siblings do *not* match the selector',
-  args: [['.null', '~', '.child-3'], 1, 1],
-  result: true
-}])
-
-cases('selectorHasDescendentCombinator', opts => {
-  const result = selectorHasDescendentCombinator(opts.selector, opts.index)
-  expect(result).toBe(opts.result)
-}, [{
-  name: 'true case where index starts at -1',
-  selector: ['a', '>', 'b', 'c'],
-  index: -1,
-  result: true
-}, {
-  name: 'false case where index starts at -1',
-  selector: ['a', '>', 'b', '>', 'c'],
-  index: -1,
-  result: false
-}, {
-  name: 'true case where index starts with a known combinator',
-  selector: ['a', '>', 'b', '~', 'c', 'd'],
-  index: 1,
-  result: true
-}, {
-  name: 'false case where index starts with a known combinator',
-  selector: ['a', '>', 'b', '~', 'c', '+', 'd'],
-  index: 1,
-  result: false
-}])
-
-cases('getElementsUsingCombinator', opts => {
+cases('combinatorQuery', opts => {
   const html = `
     <div class="container">
       <div class="child-1">xxx</div>
@@ -310,7 +192,7 @@ cases('getElementsUsingCombinator', opts => {
     </div>
   `
   const {element} = createDom(html, opts.selector)
-  const result = getElementsUsingCombinator(element, ...opts.args)
+  const result = combinatorQuery(element, ...opts.args)
   const classNames = result.elements.map(el => el.getAttribute('class'))
   expect(classNames).toEqual(opts.classNames)
   expect(result.depth).toEqual(opts.finalDepth)

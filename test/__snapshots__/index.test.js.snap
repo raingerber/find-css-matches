@@ -162,6 +162,7 @@ Object {
           "children": Array [
             Object {
               "children": Array [],
+              "html": "<li>",
               "matches": Array [
                 Object {
                   "isPartialMatch": true,
@@ -177,6 +178,7 @@ Object {
             },
             Object {
               "children": Array [],
+              "html": "<li>",
               "matches": Array [
                 Object {
                   "isPartialMatch": true,
@@ -186,6 +188,7 @@ Object {
             },
             Object {
               "children": Array [],
+              "html": "<li>",
               "matches": Array [
                 Object {
                   "isPartialMatch": true,
@@ -194,6 +197,7 @@ Object {
               ],
             },
           ],
+          "html": "<ul class=\\"container\\">",
           "matches": Array [
             Object {
               "isPartialMatch": false,
@@ -202,9 +206,11 @@ Object {
           ],
         },
       ],
+      "html": "<div>",
       "matches": Array [],
     },
   ],
+  "html": "<section class=\\"container\\">",
   "matches": Array [
     Object {
       "isPartialMatch": false,
