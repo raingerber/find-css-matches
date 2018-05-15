@@ -4,7 +4,7 @@ Given some HTML and CSS, find the selectors that match each element, including [
 
 ## Why?
 
-In web projects, it can be difficult to know what CSS selectors will apply to static HTML, especially with larger stylesheets or third-party CSS. This library makes the relationship between markup and CSS more transparent. When developing HTML, it can show the CSS that will apply to the rendered elements, and it's the core behind [jest-css-match-serializer](https://github.com/raingerber/jest-css-match-serializer). 
+In web projects, it can be difficult to know what CSS selectors will apply to static HTML, especially with larger stylesheets or third-party CSS. This library makes the relationship between markup and CSS more transparent. When developing HTML, it can show the CSS that will apply to the rendered elements, and it's the core behind [jest-css-match-serializer](https://www.npmjs.com/package/jest-css-match-serializer).
 
 ```js
 const { findMatches } = require('find-css-matches')
@@ -393,4 +393,4 @@ Partial matching for chidren is more restricted, because the parent and siblings
 
 ## See Also:
 
-[jest-css-match-serializer](https://github.com/raingerber/jest-css-match-serializer) - take snapshots of the CSS that applies to an HTML snippet
+[jest-css-match-serializer](https://www.npmjs.com/package/jest-css-match-serializer) - take snapshots of the CSS that applies to an HTML snippet
