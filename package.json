@@ -1,6 +1,6 @@
 {
   "name": "find-css-matches",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Find the CSS selectors that match an HTML snippet.",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
