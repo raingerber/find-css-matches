@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.1] - 2018-05-16
+
+### Fixed
+
+* Fix edge cases involving selectors for the html and body tags [Details](https://github.com/raingerber/find-css-matches/commit/e2810209107ddddb2702f27adaf6017cab574d23)
+
 ## [1.1.0] - 2018-05-15
 
 ### Added
@@ -10,10 +16,6 @@
 ### Changed
 
 * Reverse order of media text for nested media rules [Details](https://github.com/raingerber/find-css-matches/commit/54449b961054f3ebef5eb195f925f4feb2634d84)
-
-### Fixed
-
-* Fix edge cases involving selectors for the html and body tags [Details](https://github.com/raingerber/find-css-matches/commit/e2810209107ddddb2702f27adaf6017cab574d23)
 
 ## [1.0.1] - 2018-05-11
 
