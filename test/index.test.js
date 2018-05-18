@@ -324,4 +324,32 @@ describe('edge cases involving <html> and <body>', () => {
     const result = await findMatches(styles, html, options)
     expect(result).toMatchSnapshot()
   })
+  it('should not include injected style tags in the output', async () => {
+    const options = {
+      recursive: true,
+      includeHtml: true
+    }
+    const styles = `
+      div {
+        color: red;
+      }
+    `
+    const html = `
+      <html>
+        <head>
+          <style type="text/css">
+            div {
+              font-size: 10px;
+            }
+          </style>
+        </head>
+        <body>
+          <div>
+          </div>
+        </body>
+      </html>
+    `
+    const result = await findMatches(styles, html, options)
+    expect(result).toMatchSnapshot()
+  })
 })

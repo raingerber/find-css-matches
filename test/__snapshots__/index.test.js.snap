@@ -46,6 +46,46 @@ Object {
 }
 `;
 
+exports[`edge cases involving <html> and <body> should not include injected style tags in the output 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [],
+          "html": "<style type=\\"text/css\\">",
+          "matches": Array [],
+        },
+      ],
+      "html": "<head>",
+      "matches": Array [],
+    },
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [],
+          "html": "<div>",
+          "matches": Array [
+            Object {
+              "isPartialMatch": false,
+              "selector": "div",
+            },
+            Object {
+              "isPartialMatch": false,
+              "selector": "div",
+            },
+          ],
+        },
+      ],
+      "html": "<body>",
+      "matches": Array [],
+    },
+  ],
+  "html": "<html>",
+  "matches": Array [],
+}
+`;
+
 exports[`edge cases involving <html> and <body> should not return "body >" in a full match when the snippet does not include <body> 1`] = `
 Object {
   "matches": Array [
@@ -78,12 +118,7 @@ exports[`edge cases involving <html> and <body> should work for a "snippet" with
 Object {
   "children": Array [
     Object {
-      "children": Array [
-        Object {
-          "children": Array [],
-          "matches": Array [],
-        },
-      ],
+      "children": Array [],
       "matches": Array [],
     },
     Object {

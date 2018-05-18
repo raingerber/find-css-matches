@@ -9,7 +9,10 @@ import {stringifySelectors} from './stringify'
 async function setPageContent (page, html, styles) {
   await page.setContent(html)
   for (const style of styles) {
-    await page.addStyleTag(style)
+    const handle = await page.addStyleTag(style)
+    await page.evaluate(handle => {
+      handle.classList.add('_____FIND_CSS_MATCHES_STYLE_TAG_____')
+    }, handle)
   }
 
   return page
@@ -79,7 +82,9 @@ function findMatchingRules (options) {
   if (options.isHtmlOrBodyTag) {
     elements = [document.querySelector(options.tagName)]
   } else {
-    elements = [...document.body.children]
+    elements = Array.prototype.filter.call(document.body.children, child => {
+      return !child.classList.contains('_____FIND_CSS_MATCHES_STYLE_TAG_____')
+    })
   }
 
   const result = elements.map(element => {

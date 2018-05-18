@@ -104,9 +104,13 @@ function findRulesForElement (matches, rules, element, options, depth) {
 
   if (options.recursive === true) {
     const depthOfChildren = depth + 1
-    result.children = Array.prototype.map.call(element.children, child => {
-      return findRulesForElement(matches, rules, child, options, depthOfChildren)
-    })
+    result.children = Array.prototype.reduce.call(element.children, (acc, child) => {
+      if (!child.classList.contains('_____FIND_CSS_MATCHES_STYLE_TAG_____')) {
+        acc.push(findRulesForElement(matches, rules, child, options, depthOfChildren))
+      }
+
+      return acc
+    }, [])
   }
 
   return result
