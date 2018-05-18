@@ -4,6 +4,7 @@ const {JSDOM} = require('jsdom')
 const cases = require('jest-in-case')
 
 const {
+  DEFAULT_OPTIONS,
   mergeOptions,
   getCssRules,
   stringifyElement,
@@ -18,7 +19,7 @@ function createDom (html, selector, options) {
   const dom = new JSDOM(html)
   const element = dom.window.document.querySelector(selector)
   const matches = Function.call.bind(dom.window.Element.prototype.matches)
-  return {dom, element, matches, options: mergeOptions(options, html)}
+  return {dom, element, matches, options: mergeOptions(html, DEFAULT_OPTIONS, options)}
 }
 
 describe('getCssRules', () => {

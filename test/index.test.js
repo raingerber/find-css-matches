@@ -16,17 +16,40 @@ describe('findMatchesFactory', async () => {
       </div>
     </div>
   `
+  it('findMatches.close() should not cancel pending requests', async () => {
+    const _findMatches = await findMatchesFactory(styles, {recursive: false})
+    const promises = Promise.all([
+      _findMatches(html),
+      _findMatches(html),
+      _findMatches(html)
+    ])
+
+    await _findMatches.close()
+    return promises
+      .catch(error => error)
+      .then(result => {
+        expect(result[0]).toHaveProperty('matches')
+        expect(result[1]).toHaveProperty('matches')
+        expect(result[2]).toHaveProperty('matches')
+      })
+  })
   it('localOptions take precedence over instanceOptions', async () => {
-    const findMatches = await findMatchesFactory(styles, {recursive: false})
-    const matches = await findMatches(html, {recursive: true})
-    await findMatches.close()
+    const _findMatches = await findMatchesFactory(styles, {recursive: false})
+    const matches = await _findMatches(html, {recursive: true})
+    await _findMatches.close()
     expect(matches.children).toBeInstanceOf(Array)
   })
   it('throws when findMatches(...) is called after findMatches.close()', async () => {
-    const findMatches = await findMatchesFactory(styles)
-    await findMatches.close()
-    const result = findMatches(html)
-    expect(result).rejects.toMatchSnapshot()
+    const _findMatches = await findMatchesFactory(styles)
+    await _findMatches.close()
+    let result
+    try {
+      result = await _findMatches(html)
+    } catch (error) {
+      result = error
+    }
+
+    expect(result).toMatchSnapshot()
   })
 })
 
@@ -50,11 +73,18 @@ describe('findMatches', () => {
       </div>
     </div>
   `
+  let _findMatches
+  beforeAll(async () => {
+    _findMatches = await findMatchesFactory(styles)
+  })
+  afterAll(async () => {
+    await _findMatches.close()
+  })
   it('should ignore DOM children when options.recursive === false', async () => {
     const options = {
       recursive: false
     }
-    const result = await findMatches(styles, html, options)
+    const result = await _findMatches(html, options)
     expect(Object.keys(result)).toEqual(['matches']) // no "children" key
   })
   it('should include css arrays when option.includeCss is true', async () => {
@@ -62,7 +92,7 @@ describe('findMatches', () => {
       recursive: true,
       includeCss: true
     }
-    const result = await findMatches(styles, html, options)
+    const result = await _findMatches(html, options)
     expect(result).toMatchSnapshot()
   })
   it('should ignore partial matches when options.includePartialMatches is false', async () => {
@@ -71,7 +101,7 @@ describe('findMatches', () => {
       recursive: true,
       includePartialMatches: false
     }
-    const result = await findMatches(styles, html, options)
+    const result = await _findMatches(html, options)
     expect(result).toMatchSnapshot()
   })
   it('should include partial matches when options.includePartialMatches is true', async () => {
@@ -80,7 +110,7 @@ describe('findMatches', () => {
       recursive: true,
       includePartialMatches: true
     }
-    const result = await findMatches(styles, html, options)
+    const result = await _findMatches(html, options)
     expect(result).toMatchSnapshot()
   })
   it('should find matches for multiple root elements', async () => {
