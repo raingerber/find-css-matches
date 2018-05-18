@@ -11,17 +11,18 @@ const DEFAULT_OPTIONS = {
 }
 
 /**
- * @param {String|Object|Array<Object>} styles
+ * @param {String|Object|Array<String|Object>} styles
  * @returns {Array<Object>}
  */
 function normalizeStyles (styles) {
-  if (Array.isArray(styles)) {
-    return styles
-  } else if (typeof styles === 'string') {
-    return [{content: styles}]
-  }
+  const result = Array.isArray(styles) ? styles : [styles]
+  return result.map(style => {
+    if (typeof style === 'string') {
+      return {content: style}
+    }
 
-  return [styles]
+    return style
+  })
 }
 
 /**
@@ -47,7 +48,7 @@ async function createPage (browser) {
 }
 
 /**
- * @param {String|Object|Array<Object>} styles
+ * @param {String|Object|Array<String|Object>} styles
  * @param {Object} instanceOptions
  * @returns {Function}
  */
@@ -125,7 +126,7 @@ async function findMatchesFactory (styles, instanceOptions) {
 }
 
 /**
- * @param {String|Object|Array<Object>} styles
+ * @param {String|Object|Array<String|Object>} styles
  * @param {String} html
  * @param {Object} userOptions
  * @returns {Object}

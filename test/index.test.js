@@ -118,17 +118,21 @@ describe('findMatches', () => {
       recursive: true,
       includePartialMatches: false
     }
-    const styles = `
-      .b {
+    const styles = [
+      `.b {
         font-size: 2px;
-      }
-      .c {
+      }`,
+      `.c {
         font-size: 3px;
+      }`,
+      {
+        content: `
+          div + div {
+            color: purple;
+          }
+        `
       }
-      div + div {
-        color: purple;
-      }
-    `
+    ]
     const html = `
       <div class="a"></div>
       <div class="b"></div>
