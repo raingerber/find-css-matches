@@ -12,7 +12,8 @@ const {
   splitPartOfSelector,
   combinatorQuery,
   getMediaText,
-  formatRule
+  formatRule,
+  getIds
 } = require('../__test__/index')
 
 function createDom (html, selector, options) {
@@ -346,3 +347,24 @@ cases('getMediaText', opts => {
   },
   result: '(orientation: landscape) AND (max-width: 499px)'
 }])
+
+describe('getIds', () => {
+  it('should get the ids from every element', () => {
+    const dom = new JSDOM(`
+      <html id="root">
+        <head></head>
+        <body id="body">
+          <div>
+            <ul id="list">
+              <li></li>
+              <li id="list-item"></li>
+            </ul>
+            <span id="span"></span>
+          </div>
+        </body>
+      </html
+    `)
+    const ids = getIds(dom.window.document.children)
+    expect(ids).toEqual(['root', 'body', 'list', 'list-item', 'span'])
+  })
+})

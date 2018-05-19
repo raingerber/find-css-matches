@@ -45,6 +45,15 @@ function isBodySelector (selector) {
 }
 
 /**
+ * @param {String} selector
+ * @param {String} id
+ * @returns {Boolean}
+ */
+function selectorHasId (selector, id) {
+  return selectorIncludesToken(selector, 'id', id)
+}
+
+/**
  * @param {DOMElement} element
  * @returns {String}
  */
@@ -356,6 +365,16 @@ function validateIndex (element, parts, index, options) {
     }
   }
 
+  // defined ids should not be included
+  // in the unmatched parts of selectors
+  const hasUnusedIdFromList = (options.ids || []).some(id => {
+    return unmatched.some(selector => selectorHasId(selector, id))
+  })
+
+  if (hasUnusedIdFromList) {
+    return parts.length
+  }
+
   return index
 }
 
@@ -448,11 +467,26 @@ function formatRule (rule, selector, options) {
   return ruleObj
 }
 
+/**
+ * @param {NodeList} nodes
+ * @param {Array} result
+ * @returns {Array}
+ */
+function getIds (nodes, result = []) {
+  for (const node of nodes) {
+    node.id && result.push(node.id)
+    getIds(node.children, result)
+  }
+
+  return result
+}
+
 export {
   isCombinator,
   selectorIncludesToken,
   isHtmlSelector,
   isBodySelector,
+  selectorHasId,
   stringifyElement,
   getCssRules,
   findRulesForElement,
@@ -467,5 +501,6 @@ export {
   combinatorQuery,
   cssTextToArray,
   getMediaText,
-  formatRule
+  formatRule,
+  getIds
 }

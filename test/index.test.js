@@ -328,6 +328,43 @@ describe('edge cases involving <html> and <body>', () => {
     const result = await findMatches(styles, html, options)
     expect(result).toMatchSnapshot()
   })
+  it('should exclude selectors where known ids were included in the unmatched section', async () => {
+    const options = {
+      formatSelector,
+      recursive: true,
+      includePartialMatches: true
+    }
+    const styles = `
+      ${/* full match */''}
+      #div-id {
+        color: green;
+      }
+      ${/* full match */''}
+      #section-id #div-id {
+        color: purple;
+      }
+      ${/* partial match */''}
+      #another-id #section-id {
+        color: purple;
+      }
+      ${/* not a match */''}
+      #section-id section {
+        color: blue;
+      }
+      ${/* not a match */''}
+      #div-id > #section-id {
+        color: red;
+      }
+    `
+    const html = `
+      <section id="section-id">
+        <div id="div-id">
+        </div>
+      </section>
+    `
+    const result = await findMatches(styles, html, options)
+    expect(result).toMatchSnapshot()
+  })
   it('should not include injected style tags in the output', async () => {
     const options = {
       recursive: true,

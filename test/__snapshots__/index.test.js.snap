@@ -1,5 +1,31 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`edge cases involving <html> and <body> should exclude selectors where known ids were included in the unmatched section 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [],
+      "matches": Array [
+        Object {
+          "isPartialMatch": false,
+          "selector": "???#div-id???",
+        },
+        Object {
+          "isPartialMatch": false,
+          "selector": "???#section-id #div-id???",
+        },
+      ],
+    },
+  ],
+  "matches": Array [
+    Object {
+      "isPartialMatch": true,
+      "selector": "#another-id ???#section-id???",
+    },
+  ],
+}
+`;
+
 exports[`edge cases involving <html> and <body> should find matches for the <body> element 1`] = `
 Object {
   "children": Array [

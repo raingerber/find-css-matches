@@ -58,6 +58,8 @@ function findMatchingRules (options) {
 
   // STUB:isBodySelector
 
+  // STUB:selectorHasId
+
   // STUB:stringifyElement
 
   // STUB:getCssRules
@@ -68,9 +70,9 @@ function findMatchingRules (options) {
 
   // STUB:splitPartOfSelector
 
-  // STUB:isMatchable
-
   // STUB:isFullMatchable
+
+  // STUB:isMatchable
 
   // STUB:selectorStringToArray
 
@@ -84,9 +86,11 @@ function findMatchingRules (options) {
 
   // STUB:cssTextToArray
 
+  // STUB:getMediaText
+
   // STUB:formatRule
 
-  // STUB:getMediaText
+  // STUB:getIds
 
   const matches = Function.call.bind(window.Element.prototype.webkitMatchesSelector)
 
@@ -102,9 +106,12 @@ function findMatchingRules (options) {
     })
   }
 
+  // eslint-disable-next-line no-undef
+  const ids = getIds(elements)
+  const fullOptions = {...options, ids}
   const result = elements.map(element => {
     // eslint-disable-next-line no-undef
-    return findRulesForElement(matches, rules, element, options, 0)
+    return findRulesForElement(matches, rules, element, fullOptions, 0)
   })
 
   return Promise.all(result)
