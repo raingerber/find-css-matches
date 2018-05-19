@@ -1,6 +1,8 @@
 # Find CSS Matches
 
-Given some HTML and CSS, find the selectors that match each element, including [partial matches](#partial-matching). Uses [Puppeteer](https://github.com/GoogleChrome/puppeteer).
+Given some HTML and CSS, find the selectors that match each element, including [partial matches](#partial-matching).
+
+Uses [Puppeteer](https://github.com/GoogleChrome/puppeteer).
 
 ## Why?
 
@@ -253,19 +255,11 @@ Partial match examples:
 }
 
 .abra .cadabra {
-  color: magenta;
-}
-
-.abra > .cadabra {
-  color: red;
+  color: green;
 }
 
 .abra + .cadabra {
   color: green;
-}
-
-.abra ~ .cadabra {
-  color: yellow;
 }
 ```
 
@@ -309,15 +303,7 @@ const result = await findMatches(styles, html, options)
       isPartialMatch: true
     },
     {
-      selector: '.abra > ??.cadabra??',
-      isPartialMatch: true
-    },
-    {
       selector: '.abra + ??.cadabra??',
-      isPartialMatch: true
-    },
-    {
-      selector: '.abra ~ ??.cadabra??',
       isPartialMatch: true
     }
   ],
@@ -358,11 +344,7 @@ const result = await findMatches(styles, html, options)
 
 `✅  .abra .cadabra`
 
-`✅  .abra > .cadabra`
-
 `✅  .abra + .cadabra`
-
-`✅  .abra ~ .cadabra`
 
 ### Matches for the child element:
 
@@ -377,11 +359,7 @@ Partial matching for chidren is more restricted, because the parent and siblings
 
 `❌  .abra`
 
-`❌  .abra > .cadabra`
-
 `❌  .abra + .cadabra`
-
-`❌  .abra ~ .cadabra`
 
 **Full Matches:**
 
