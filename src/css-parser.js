@@ -1,6 +1,13 @@
 import {stringifySelectors} from './stringify'
 
 /**
+ * @param {ElementHandle} handle
+ */
+function addFindCssMatchesClass (handle) {
+  handle.classList.add('_____FIND_CSS_MATCHES_TAG_____')
+}
+
+/**
  * @param {Page} page
  * @param {String} html
  * @param {Array<Object>} styles
@@ -10,11 +17,15 @@ async function setPageContent (page, html, styles) {
   await page.setContent(html)
   for (const style of styles) {
     const handle = await page.addStyleTag(style)
-    await page.evaluate(handle => {
-      handle.classList.add('_____FIND_CSS_MATCHES_STYLE_TAG_____')
-    }, handle)
+    await page.evaluate(addFindCssMatchesClass, handle)
   }
 
+  const handle = await page.addScriptTag({
+    // eslint-disable-next-line no-undef
+    content: $TOKENIZER_BUNDLE
+  })
+
+  await page.evaluate(addFindCssMatchesClass, handle)
   return page
 }
 
@@ -41,6 +52,8 @@ function getOpeningTagName (html) {
 function findMatchingRules (options) {
   // STUB:isCombinator
 
+  // STUB:selectorIncludesToken
+
   // STUB:isHtmlSelector
 
   // STUB:isBodySelector
@@ -51,7 +64,7 @@ function findMatchingRules (options) {
 
   // STUB:findRulesForElement
 
-  // STUB:parseRuleForElement
+  // STUB:parseSelectorText
 
   // STUB:splitPartOfSelector
 
@@ -64,6 +77,8 @@ function findMatchingRules (options) {
   // STUB:selectorArrayToString
 
   // STUB:findMatchIndex
+
+  // STUB:validateIndex
 
   // STUB:combinatorQuery
 
@@ -83,7 +98,7 @@ function findMatchingRules (options) {
     elements = [document.querySelector(options.tagName)]
   } else {
     elements = Array.prototype.filter.call(document.body.children, child => {
-      return !child.classList.contains('_____FIND_CSS_MATCHES_STYLE_TAG_____')
+      return !child.classList.contains('_____FIND_CSS_MATCHES_TAG_____')
     })
   }
 

@@ -4,6 +4,11 @@ which is necessary because that function is executed with page.evaluate;
 however, the functions are defined here so that we can unit test them
 */
 
+import * as modules from './modules'
+
+// placeholder for unit testing
+const window = {modules}
+
 /**
  * @param {String} input
  * @returns {Boolean}
@@ -14,10 +19,21 @@ function isCombinator (input) {
 
 /**
  * @param {String} selector
+ * @param {String} type
+ * @param {String} name
+ * @returns {Boolean}
+ */
+function selectorIncludesToken (selector, type, name) {
+  const [{nodes}] = window.modules.tokenizer.parse(selector).nodes
+  return nodes.some(node => node.type === type && node.name === name)
+}
+
+/**
+ * @param {String} selector
  * @returns {Boolean}
  */
 function isHtmlSelector (selector) {
-  return /^html(?:$|[^a-z-])/i.test(selector)
+  return selectorIncludesToken(selector, 'element', 'html')
 }
 
 /**
@@ -25,7 +41,7 @@ function isHtmlSelector (selector) {
  * @returns {Boolean}
  */
 function isBodySelector (selector) {
-  return /^body(?:$|[^a-z-])/i.test(selector)
+  return selectorIncludesToken(selector, 'element', 'body')
 }
 
 /**
@@ -97,7 +113,7 @@ function findRulesForElement (matches, rules, element, options, depth) {
   }
 
   result.matches = rules.reduce((acc, rule) => {
-    const selector = parseRuleForElement(matches, rule, element, options, depth)
+    const selector = parseSelectorText(matches, rule.selectorText, element, options, depth)
     selector && acc.push(formatRule(rule, selector, options))
     return acc
   }, [])
@@ -105,7 +121,7 @@ function findRulesForElement (matches, rules, element, options, depth) {
   if (options.recursive === true) {
     const depthOfChildren = depth + 1
     result.children = Array.prototype.reduce.call(element.children, (acc, child) => {
-      if (!child.classList.contains('_____FIND_CSS_MATCHES_STYLE_TAG_____')) {
+      if (!child.classList.contains('_____FIND_CSS_MATCHES_TAG_____')) {
         acc.push(findRulesForElement(matches, rules, child, options, depthOfChildren))
       }
 
@@ -118,17 +134,17 @@ function findRulesForElement (matches, rules, element, options, depth) {
 
 /**
  * @param {Function} matches
- * @param {CSSRule} rule
+ * @param {String} selectorText
  * @param {DOMElement} element
  * @param {Object} options
  * @param {Number} depth
  * @returns {Number}
  */
-function parseRuleForElement (matches, rule, element, options, depth) {
+function parseSelectorText (matches, selectorText, element, options, depth) {
   let hasMatch = false
 
   // '.a, .b > .c' => ['.a', '.b > .c']
-  const parts = rule.selectorText.split(/\s*,\s*/)
+  const parts = selectorText.split(/\s*,\s*/)
   const result = parts.map(part => {
     const selector = splitPartOfSelector(matches, element, part, depth, options)
     if (options.includePartialMatches) {
@@ -164,26 +180,13 @@ function parseRuleForElement (matches, rule, element, options, depth) {
 function splitPartOfSelector (matches, element, selector, depth, options) {
   let result
   const parts = selectorStringToArray(selector)
-
-  if (isMatchable(parts)) {
-    if (isFullMatchable(parts, options) && matches(element, selector)) {
-      result = [[], parts]
-    } else if (options.includePartialMatches) {
-      const lastIndex = parts.length - 1
-      const index = findMatchIndex(matches, element, depth, parts, lastIndex)
-      const unmatched = parts.slice(0, index)
-      const matched = parts.slice(index)
-      result = [unmatched, matched]
-
-      // if the <body> element was included in the user's html,
-      // the unmatched part can only contain a selector for the
-      // <html> element followed by an optional combinator
-      if (options.tagName === 'body') {
-        if (unmatched.length > 2 || !isHtmlSelector(unmatched[0])) {
-          result = null
-        }
-      }
-    }
+  if (isFullMatchable(parts, options) && matches(element, selector)) {
+    result = [[], parts]
+  } else if (options.includePartialMatches && isMatchable(parts)) {
+    const index = findMatchIndex(matches, element, depth, parts, parts.length - 1, options)
+    const unmatched = parts.slice(0, index)
+    const matched = parts.slice(index)
+    result = [unmatched, matched]
   }
 
   if (result) {
@@ -191,6 +194,29 @@ function splitPartOfSelector (matches, element, selector, depth, options) {
   }
 
   return [selector, '']
+}
+
+/**
+ * when the <body> is not included
+ * in the user-provided HTML, we don't
+ * allow selectors with "body >" in them,
+ * because that makes an assumption about
+ * the position of the element in the dom
+ * @param {Array<String>} parts
+ * @param {Object} options
+ * @returns {Boolean}
+ */
+function isFullMatchable (parts, options) {
+  if (parts.length === 0) {
+    return false
+  }
+
+  if (options.isHtmlOrBodyTag) {
+    return true
+  }
+
+  const index = parts.findIndex(part => isBodySelector(part))
+  return index === -1 || parts[index + 1] === ' '
 }
 
 /**
@@ -227,29 +253,6 @@ function isMatchable (parts) {
 }
 
 /**
- * for partial matches where the <body> was
- * not in the user-provided HTML, we don't
- * allow selectors with "body >" in them,
- * because that makes an assumption about
- * the position of the element in the dom
- * @param {Array<String>} parts
- * @param {Object} options
- * @returns {Boolean}
- */
-function isFullMatchable (parts, options) {
-  if (parts.length === 0) {
-    return false
-  }
-
-  if (options.isHtmlOrBodyTag) {
-    return true
-  }
-
-  const index = parts.findIndex(part => isBodySelector(part))
-  return index === -1 || parts[index + 1] === ' '
-}
-
-/**
  * @param {String} selector
  * @returns {Array<String>}
  */
@@ -282,9 +285,10 @@ function selectorArrayToString (selector) {
  * @param {Number} elementDepth
  * @param {Array<String>} parts
  * @param {Number} index - current parts index
+ * @param {Object} options
  * @returns {Number}
  */
-function findMatchIndex (matches, element, elementDepth, parts, index) {
+function findMatchIndex (matches, element, elementDepth, parts, index, options) {
   if (index < 0) {
     return 0
   }
@@ -297,17 +301,9 @@ function findMatchIndex (matches, element, elementDepth, parts, index) {
   if (isCombinator(part)) {
     combinator = part
   } else if (matches(element, part)) {
-    if (element.tagName === 'BODY') {
-      // if the <body> has already been visited, we can't
-      // have a selector for that in the remaining parts
-      if (parts.slice(0, index).find(part => isBodySelector(part))) {
-        return NO_MATCH
-      }
-    }
-
-    return findMatchIndex(matches, element, elementDepth, parts, index - 1)
+    return findMatchIndex(matches, element, elementDepth, parts, index - 1, options)
   } else if (parts[index + 1] === ' ') {
-    return index + 2
+    return validateIndex(element, parts, index + 2, options)
   } else {
     return NO_MATCH
   }
@@ -315,7 +311,7 @@ function findMatchIndex (matches, element, elementDepth, parts, index) {
   // for root elements, we don't know the
   // parent, so this will be a partial match
   if (combinator === '>' && elementDepth <= 0) {
-    return index + 1
+    return validateIndex(element, parts, index + 1, options)
   }
 
   const {elements, depth} = combinatorQuery(element, combinator, elementDepth)
@@ -324,7 +320,7 @@ function findMatchIndex (matches, element, elementDepth, parts, index) {
     if (elementDepth > 0 && combinator !== ' ') {
       return NO_MATCH
     } else {
-      return index + 1
+      return validateIndex(element, parts, index + 1, options)
     }
   }
 
@@ -335,10 +331,32 @@ function findMatchIndex (matches, element, elementDepth, parts, index) {
     // for lazy evaluation instead of getting
     // all the elements in a single go
     const _depth = combinator === ' ' ? depth - i : depth
-    return findMatchIndex(matches, element, _depth, parts, index - 1)
+    return findMatchIndex(matches, element, _depth, parts, index - 1, options)
   })
 
   return Math.min(...indices)
+}
+
+/**
+ * @param {DOMElement} element
+ * @param {Array<String>} parts
+ * @param {Number} index
+ * @param {Object} options
+ * @returns {Number}
+ */
+function validateIndex (element, parts, index, options) {
+  const unmatched = parts.slice(0, index)
+  if (options.tagName === 'html' && unmatched.length) {
+    return parts.length
+  } else if (options.tagName === 'body') {
+    // the unmatched part before the <body> element can only
+    // have an <html> selector followed by an optional combinator
+    if (unmatched.length > 2 || !isHtmlSelector(unmatched[0])) {
+      return parts.length
+    }
+  }
+
+  return index
 }
 
 /**
@@ -432,18 +450,20 @@ function formatRule (rule, selector, options) {
 
 export {
   isCombinator,
+  selectorIncludesToken,
   isHtmlSelector,
   isBodySelector,
   stringifyElement,
   getCssRules,
   findRulesForElement,
-  parseRuleForElement,
+  parseSelectorText,
   splitPartOfSelector,
   isFullMatchable,
   isMatchable,
   selectorStringToArray,
   selectorArrayToString,
   findMatchIndex,
+  validateIndex,
   combinatorQuery,
   cssTextToArray,
   getMediaText,
