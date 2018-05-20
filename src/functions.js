@@ -1,128 +1,88 @@
-/*
-in the build, these functions are moved into the body of findMatchingRules,
-which is necessary because that function is executed with page.evaluate;
-however, the functions are defined here so that we can unit test them
-*/
+import {
+  combinatorQuery,
+  stringifyElement,
+  cssTextToArray,
+  getMediaText
+} from './dom-utils'
 
-import * as modules from './modules'
-
-// placeholder for unit testing
-const window = {modules}
-
-/**
- * @param {String} input
- * @returns {Boolean}
- */
-function isCombinator (input) {
-  return input === '>' || input === '+' || input === '~' || input === ' '
-}
+import {
+  selectorArrayToString
+} from './parser'
 
 /**
- * @param {String} selector
  * @param {String} type
  * @param {String} name
+ * @param {Object} token
  * @returns {Boolean}
  */
-function selectorIncludesToken (selector, type, name) {
-  const [{nodes}] = window.modules.tokenizer.parse(selector).nodes
-  return nodes.some(node => node.type === type && node.name === name)
+function tokenIsMatch (type, name, token) {
+  return token.type === type && token.name === name
 }
 
 /**
- * @param {String} selector
- * @returns {Boolean}
+ * @param {String} type
+ * @param {String} name
+ * @param {Array<Object>} tokens
+ * @returns {Object|undefined}
  */
-function isHtmlSelector (selector) {
-  return selectorIncludesToken(selector, 'element', 'html')
+function findMatchingToken (type, name, tokens) {
+  return tokens.find(token => tokenIsMatch(type, name, token))
 }
 
 /**
- * @param {String} selector
- * @returns {Boolean}
+ * @param {Array<Object>} tokens
+ * @returns {Object|undefined}
  */
-function isBodySelector (selector) {
-  return selectorIncludesToken(selector, 'element', 'body')
+function findHtmlToken (tokens) {
+  return findMatchingToken('element', 'html', tokens)
 }
 
 /**
- * @param {String} selector
+ * @param {Array<Object>} tokens
+ * @returns {Object|undefined}
+ */
+function findBodyToken (tokens) {
+  return findMatchingToken('element', 'body', tokens)
+}
+
+/**
+ * @param {Array<Object>} tokens
  * @param {String} id
+ * @returns {Object|undefined}
+ */
+function findIdToken (tokens, id) {
+  return findMatchingToken('id', id, tokens)
+}
+
+/**
+ * @param {Object} node
  * @returns {Boolean}
  */
-function selectorHasId (selector, id) {
-  return selectorIncludesToken(selector, 'id', id)
-}
-
-/**
- * @param {DOMElement} element
- * @returns {String}
- */
-function stringifyElement (element) {
-  const match = element.outerHTML.match(/[^>]*>/)
-  return match ? match[0] : ''
-}
-
-/**
- * @param {StyleSheetList|Array<CSSRule>} styles
- * @returns {Array<CSSRule>}
- */
-function getCssRules (styles) {
-  // https://developer.mozilla.org/en-US/docs/Web/API/CSSRule
-  const CSS_RULE_TYPES = [
-    /* eslint-disable no-multi-spaces */
-    'UNKNOWN_RULE',              // 0
-    'STYLE_RULE',                // 1
-    'CHARSET_RULE',              // 2
-    'IMPORT_RULE',               // 3
-    'MEDIA_RULE',                // 4
-    'FONT_FACE_RULE',            // 5
-    'PAGE_RULE',                 // 6
-    'KEYFRAMES_RULE',            // 7
-    'KEYFRAME_RULE',             // 8
-    null,                        // 9
-    'NAMESPACE_RULE',            // 10
-    'COUNTER_STYLE_RULE',        // 11
-    'SUPPORTS_RULE',             // 12
-    'DOCUMENT_RULE',             // 13
-    'FONT_FEATURE_VALUES_RULE',  // 14
-    'VIEWPORT_RULE',             // 15
-    'REGION_STYLE_RULE'          // 16
-    /* eslint-enable no-multi-spaces */
-  ]
-
-  const rules = []
-  for (const {cssRules} of styles) {
-    for (const rule of cssRules) {
-      switch (CSS_RULE_TYPES[rule.type]) {
-        case 'STYLE_RULE':
-          rules.push(rule)
-          break
-        case 'MEDIA_RULE':
-          rules.push(...getCssRules([rule]))
-          break
-      }
-    }
+function isElementOrUniversalNode (node) {
+  if (node.tokens.length !== 1) {
+    return false
   }
 
-  return rules
+  const {type} = node.tokens[0]
+  return type === 'element' || type === 'universal'
 }
 
 /**
  * @param {Function} matches
- * @param {Array<CSSRule>} rules
+ * @param {Array<Object>} rules
  * @param {DOMElement} element
  * @param {Object} options
  * @param {Number} depth
  * @returns {Object}
  */
-function findRulesForElement (matches, rules, element, options, depth) {
+function findRulesForElements (matches, rules, element, options, depth) {
   const result = {}
   if (options.includeHtml === true) {
     result.html = stringifyElement(element)
   }
 
   result.matches = rules.reduce((acc, rule) => {
-    const selector = parseSelectorText(matches, rule.selectorText, element, options, depth)
+    const selector = parseRuleForElement(matches, rule, element, options, depth)
     selector && acc.push(formatRule(rule, selector, options))
     return acc
   }, [])
@@ -131,7 +91,7 @@ function findRulesForElement (matches, rules, element, options, depth) {
     const depthOfChildren = depth + 1
     result.children = Array.prototype.reduce.call(element.children, (acc, child) => {
       if (!child.classList.contains('_____FIND_CSS_MATCHES_TAG_____')) {
-        acc.push(findRulesForElement(matches, rules, child, options, depthOfChildren))
+        acc.push(findRulesForElements(matches, rules, child, options, depthOfChildren))
       }
 
       return acc
@@ -143,19 +103,16 @@ function findRulesForElement (matches, rules, element, options, depth) {
 
 /**
  * @param {Function} matches
- * @param {String} selectorText
+ * @param {Object} rule
  * @param {DOMElement} element
  * @param {Object} options
  * @param {Number} depth
- * @returns {Number}
+ * @returns {Array<Array<String>>|null}
  */
-function parseSelectorText (matches, selectorText, element, options, depth) {
+function parseRuleForElement (matches, rule, element, options, depth) {
   let hasMatch = false
-
-  // '.a, .b > .c' => ['.a', '.b > .c']
-  const parts = selectorText.split(/\s*,\s*/)
-  const result = parts.map(part => {
-    const selector = splitPartOfSelector(matches, element, part, depth, options)
+  const result = rule.selectors.map(selectorNode => {
+    const selector = parseSelectorForElement(matches, element, selectorNode, options, depth)
     if (options.includePartialMatches) {
       if (selector[1]) {
         hasMatch = true
@@ -181,25 +138,23 @@ function parseSelectorText (matches, selectorText, element, options, depth) {
  * if neither string is empty, it was a partial match
  * @param {Function} matches
  * @param {DOMElement} element
- * @param {String} selector
- * @param {Number} depth
+ * @param {Object} selectorNode
  * @param {Object} options
+ * @param {Number} depth
  * @returns {Array<String>}
  */
-function splitPartOfSelector (matches, element, selector, depth, options) {
-  let result
-  const parts = selectorStringToArray(selector)
-  if (isFullMatchable(parts, options) && matches(element, selector)) {
-    result = [[], parts]
-  } else if (options.includePartialMatches && isMatchable(parts)) {
-    const index = findMatchIndex(matches, element, depth, parts, parts.length - 1, options)
-    const unmatched = parts.slice(0, index)
-    const matched = parts.slice(index)
-    result = [unmatched, matched]
-  }
-
-  if (result) {
-    return selectorArrayToString(result)
+function parseSelectorForElement (matches, element, selectorNode, options, depth) {
+  const {nodes, selector} = selectorNode
+  if (options.includePartialMatches) {
+    if (isMatchable(nodes)) {
+      const lastIndex = nodes.length - 1
+      const index = findMatchIndex(matches, element, depth, selectorNode, lastIndex, options)
+      return selectorArrayToString([nodes.slice(0, index), nodes.slice(index)])
+    }
+  } else if (isFullMatchable(nodes, options)) {
+    if (matches(element, selector)) {
+      return ['', selector]
+    }
   }
 
   return [selector, '']
@@ -211,12 +166,12 @@ function splitPartOfSelector (matches, element, selector, depth, options) {
  * allow selectors with "body >" in them,
  * because that makes an assumption about
  * the position of the element in the dom
- * @param {Array<String>} parts
+ * @param {Array<Object>} nodes
  * @param {Object} options
  * @returns {Boolean}
  */
-function isFullMatchable (parts, options) {
-  if (parts.length === 0) {
+function isFullMatchable (nodes, options) {
+  if (nodes.length === 0) {
     return false
   }
 
@@ -224,36 +179,35 @@ function isFullMatchable (parts, options) {
     return true
   }
 
-  const index = parts.findIndex(part => isBodySelector(part))
-  return index === -1 || parts[index + 1] === ' '
+  const node = nodes.find(node => findBodyToken(node.tokens))
+  return !node || node.combinator === ' '
 }
 
 /**
  * some basic selector validation
  * <html> tags - no ancestors or siblings
  * <body> tags - no siblings
- * @param {Array<String>} parts
+ * @param {Array<Object>} nodes
  * @returns {Boolean}
  */
-function isMatchable (parts) {
-  if (parts.length === 0) {
+function isMatchable (nodes) {
+  if (nodes.length === 0) {
     return false
   }
 
-  for (let i = 2; i < parts.length; i += 2) {
-    const part = parts[i]
-    if (isHtmlSelector(part)) {
+  for (let i = 0; i < nodes.length; i += 1) {
+    const node = nodes[i]
+    if (i && findHtmlToken(node.tokens)) {
       return false
-    } else if (isBodySelector(part)) {
-      let prevPart = parts[i - 1]
-      if (prevPart === '+' || prevPart === '~') {
+    }
+
+    if (findBodyToken(node.tokens)) {
+      if (node.combinator === '+' || node.combinator === '~') {
         return false
       }
 
-      if (prevPart === '>' || prevPart === ' ') {
-        if (!isHtmlSelector(parts[i - 2])) {
-          return false
-        }
+      if (i && !findHtmlToken(nodes[i - 1].tokens)) {
+        return false
       }
     }
   }
@@ -262,245 +216,131 @@ function isMatchable (parts) {
 }
 
 /**
- * @param {String} selector
- * @returns {Array<String>}
- */
-function selectorStringToArray (selector) {
-  let match
-  const parts = []
-  const REGEX = /\s[>+~]\s|\s+|[^\s]+/g
-  while ((match = REGEX.exec(selector))) {
-    parts.push(match[0] === ' ' ? match[0] : match[0].trim())
-  }
-
-  return parts
-}
-
-/**
- * @param {Array<Array<String>>} selector
- * @returns {Array<String>}
- */
-function selectorArrayToString (selector) {
-  return selector.map(part => part.filter(p => p !== ' ').join(' '))
-}
-
-/**
- * this function is complicated,
- * but moving each bit of logic
- * into separate functions would
- * probably make it more confusing
  * @param {Function} matches
  * @param {DOMElement} element
  * @param {Number} elementDepth
- * @param {Array<String>} parts
- * @param {Number} index - current parts index
+ * @param {Object} selectorNode
+ * @param {Number} index - current token index
  * @param {Object} options
  * @returns {Number}
  */
-function findMatchIndex (matches, element, elementDepth, parts, index, options) {
-  if (index < 0) {
-    return 0
+function findMatchIndex (matches, element, elementDepth, selectorNode, index, options) {
+  if (index < 0) return 0
+  const node = selectorNode.nodes[index]
+  if (!options.isHtmlOrBodyTag && element.tagName === 'BODY' && node.combinator === '>') {
+    return validateMatchIndex(element, selectorNode.nodes, index + 1, options)
   }
 
-  const part = parts[index]
-
-  const NO_MATCH = parts.length
-
-  let combinator
-  if (isCombinator(part)) {
-    combinator = part
-  } else if (matches(element, part)) {
-    return findMatchIndex(matches, element, elementDepth, parts, index - 1, options)
-  } else if (parts[index + 1] === ' ') {
-    return validateIndex(element, parts, index + 2, options)
+  const NO_MATCH = selectorNode.nodes.length
+  const isMatch = matches(element, node.selector)
+  if (elementDepth < 0 && (!isMatch || !isElementOrUniversalNode(node))) {
+    return validateMatchIndex(element, selectorNode.nodes, index + 1, options)
+  } else if (isMatch) {
+    if (index < 1) {
+      return 0
+    }
   } else {
     return NO_MATCH
   }
 
-  // for root elements, we don't know the
-  // parent, so this will be a partial match
-  if (combinator === '>' && elementDepth <= 0) {
-    return validateIndex(element, parts, index + 1, options)
-  }
-
+  const {combinator} = selectorNode.nodes[index - 1]
   const {elements, depth} = combinatorQuery(element, combinator, elementDepth)
 
   if (elements.length === 0) {
-    if (elementDepth > 0 && combinator !== ' ') {
-      return NO_MATCH
+    if (elementDepth < 1 || combinator === ' ') {
+      return validateMatchIndex(element, selectorNode.nodes, index, options)
     } else {
-      return validateIndex(element, parts, index + 1, options)
+      return NO_MATCH
     }
   }
 
   const indices = elements.map((element, i) => {
-    // TODO make combinatorQuery a generator;
-    // it could return {element, depth}, which
-    // would remove this hacky line, and allow
-    // for lazy evaluation instead of getting
-    // all the elements in a single go
     const _depth = combinator === ' ' ? depth - i : depth
-    return findMatchIndex(matches, element, _depth, parts, index - 1, options)
+    return findMatchIndex(matches, element, _depth, selectorNode, index - 1, options)
   })
 
   return Math.min(...indices)
 }
 
 /**
+ * validate the unmatched part of a "match"
  * @param {DOMElement} element
- * @param {Array<String>} parts
+ * @param {Array<Object>} nodes
  * @param {Number} index
  * @param {Object} options
  * @returns {Number}
  */
-function validateIndex (element, parts, index, options) {
-  const unmatched = parts.slice(0, index)
-  if (options.tagName === 'html' && unmatched.length) {
-    return parts.length
-  } else if (options.tagName === 'body') {
-    // the unmatched part before the <body> element can only
-    // have an <html> selector followed by an optional combinator
-    if (unmatched.length > 2 || !isHtmlSelector(unmatched[0])) {
-      return parts.length
+function validateMatchIndex (element, nodes, index, options) {
+  if (index === 0) {
+    return index
+  }
+
+  if (index < 0 || index >= nodes.length) {
+    return nodes.length
+  }
+
+  // case for when the <body> is matched by a selector
+  // that could also match another element (such as *)
+  if (options.tagName === 'body') {
+    // the unmatched part before the <body> element can only have an <html>
+    // selector followed by an optional combinator; this does not account
+    // for some weird edge cases like "html.a > head.b + body"
+    if (index > 2 || !findHtmlToken(nodes[0].tokens)) {
+      return nodes.length
     }
   }
 
   // defined ids should not be included
   // in the unmatched parts of selectors
+  const unmatched = nodes.slice(0, index)
   const hasUnusedIdFromList = (options.ids || []).some(id => {
-    return unmatched.some(selector => selectorHasId(selector, id))
+    return unmatched.some(node => findIdToken(node.tokens, id))
   })
 
   if (hasUnusedIdFromList) {
-    return parts.length
+    return nodes.length
   }
 
   return index
 }
 
 /**
- * @param {DOMElement} element
- * @param {String} combinator
- * @param {Number} depth
- * @returns {Object}
- */
-function combinatorQuery (element, combinator, depth) {
-  const elements = []
-  let depthOfElements = depth
-  if (combinator === '>') {
-    if (element.parentElement) {
-      elements.push(element.parentElement)
-    }
-    depthOfElements--
-  } else if (combinator === '+') {
-    if (element.previousElementSibling) {
-      elements.push(element.previousElementSibling)
-    }
-  } else if (combinator === '~') {
-    let el = element
-    while ((el = el.previousElementSibling)) {
-      elements.unshift(el)
-    }
-  } else if (combinator === ' ') {
-    let el = element
-    while ((el = el.parentElement)) {
-      elements.push(el)
-    }
-    depthOfElements--
-  }
-
-  return {elements, depth: depthOfElements}
-}
-
-/**
- * @param {String} cssText
- * @returns {Array<String>}
- */
-function cssTextToArray (cssText) {
-  const match = cssText.match(/{([^}]*)}/)
-  const text = match ? match[1].trim() : ''
-  return text.split(/;\s*/).reduce((acc, str) => {
-    str && acc.push(`${str}`)
-    return acc
-  }, [])
-}
-
-/**
- * @param {CSSRule} rule
- * @returns {String}
- */
-function getMediaText (rule) {
-  let media = ''
-  let current = rule
-  while ((current = current.parentRule) && current.media) {
-    if (media) {
-      media = `${current.media.mediaText} AND ${media}`
-    } else {
-      media = current.media.mediaText
-    }
-  }
-
-  return media
-}
-
-/**
- * @param {CSSRule} rule
+ * @param {Object} rule
  * @param {Array<Array<String>>} selector
  * @param {Object} options
  * @returns {Object}
  */
 function formatRule (rule, selector, options) {
-  const ruleObj = {selector}
-  const media = getMediaText(rule)
+  const result = {selector}
+  const media = getMediaText(rule.rule)
   if (media) {
-    ruleObj.media = media
+    result.media = media
   }
 
   if (options.includeCss === true) {
-    ruleObj.css = cssTextToArray(rule.cssText)
+    result.css = cssTextToArray(rule.rule.cssText)
   }
 
   if (options.includePartialMatches) {
-    ruleObj.isPartialMatch = selector.every(([unmatched]) => unmatched)
-  }
-
-  return ruleObj
-}
-
-/**
- * @param {NodeList} nodes
- * @param {Array} result
- * @returns {Array}
- */
-function getIds (nodes, result = []) {
-  for (const node of nodes) {
-    node.id && result.push(node.id)
-    getIds(node.children, result)
+    result.isPartialMatch = selector.every(([unmatched]) => unmatched)
   }
 
   return result
 }
 
 export {
-  isCombinator,
-  selectorIncludesToken,
-  isHtmlSelector,
-  isBodySelector,
-  selectorHasId,
-  stringifyElement,
-  getCssRules,
-  findRulesForElement,
-  parseSelectorText,
-  splitPartOfSelector,
+  tokenIsMatch,
+  findMatchingToken,
+  findHtmlToken,
+  findBodyToken,
+  findIdToken,
+  isElementOrUniversalNode,
+  findRulesForElements,
+  parseRuleForElement,
+  parseSelectorForElement,
   isFullMatchable,
   isMatchable,
-  selectorStringToArray,
-  selectorArrayToString,
   findMatchIndex,
-  validateIndex,
-  combinatorQuery,
-  cssTextToArray,
-  getMediaText,
-  formatRule,
-  getIds
+  validateMatchIndex,
+  formatRule
 }

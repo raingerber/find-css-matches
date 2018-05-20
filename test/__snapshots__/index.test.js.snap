@@ -56,6 +56,18 @@ Object {
 }
 `;
 
+exports[`edge cases involving <html> and <body> should include "body > *" in a partial match when the snippet does not include <body> 1`] = `
+Object {
+  "children": Array [],
+  "matches": Array [
+    Object {
+      "isPartialMatch": true,
+      "selector": "body > ???*???",
+    },
+  ],
+}
+`;
+
 exports[`edge cases involving <html> and <body> should include "body >" in a full match when the snippet includes <body> 1`] = `
 Object {
   "children": Array [
@@ -109,17 +121,6 @@ Object {
   ],
   "html": "<html>",
   "matches": Array [],
-}
-`;
-
-exports[`edge cases involving <html> and <body> should not return "body >" in a full match when the snippet does not include <body> 1`] = `
-Object {
-  "matches": Array [
-    Object {
-      "isPartialMatch": true,
-      "selector": "body > ???*???",
-    },
-  ],
 }
 `;
 
@@ -415,6 +416,62 @@ Object {
       "selector": "div[data-gloop=\\"true\\"] > ???*???",
     },
   ],
+}
+`;
+
+exports[`findMatches with various combinators should find matches for child #3 with relatively basic selectors 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [],
+      "html": "<div class=\\"child-1\\">",
+      "matches": Array [],
+    },
+    Object {
+      "children": Array [],
+      "html": "<div class=\\"child-2\\">",
+      "matches": Array [],
+    },
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [],
+          "html": "<div class=\\"grandchild-1\\">",
+          "matches": Array [
+            Object {
+              "isPartialMatch": true,
+              "selector": ".could-exist div > ???.container > .child-3 > .grandchild-1???",
+            },
+            Object {
+              "isPartialMatch": true,
+              "selector": "#a .b > .c ~ .d ???.grandchild-1???",
+            },
+          ],
+        },
+      ],
+      "html": "<div class=\\"child-3\\">",
+      "matches": Array [
+        Object {
+          "isPartialMatch": false,
+          "selector": "???.child-2 + .child-3???",
+        },
+        Object {
+          "isPartialMatch": false,
+          "selector": "???.child-1 ~ .child-3???",
+        },
+        Object {
+          "isPartialMatch": true,
+          "selector": ".could-exist ???.child-3???",
+        },
+        Object {
+          "isPartialMatch": true,
+          "selector": ".could-exist ???.container > .child-3???",
+        },
+      ],
+    },
+  ],
+  "html": "<div class=\\"container\\">",
+  "matches": Array [],
 }
 `;
 

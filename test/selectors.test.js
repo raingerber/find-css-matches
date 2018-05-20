@@ -1,104 +1,105 @@
 /* eslint-env jest */
 
+const Tokenizer = require('css-selector-tokenizer')
+
+function parse (selector) {
+  return Tokenizer.parse(selector).nodes[0].nodes
+}
+
 const {
-  isHtmlSelector,
-  isBodySelector,
+  parseCssRules,
+  findHtmlToken,
+  findBodyToken,
+  findIdToken,
   isFullMatchable,
   isMatchable,
   selectorStringToArray,
   selectorArrayToString
 } = require('../__test__')
 
-describe('isHtmlSelector', () => {
-  it('true for html', () => {
-    expect(isHtmlSelector('html')).toBe(true)
+function createRules (selectorText) {
+  const parsed = parseCssRules([{selectorText}])
+  return parsed[0].selectors[0].nodes
+}
+
+describe('findHtmlToken', () => {
+  it('"body.html" should be falsey', () => {
+    expect(findHtmlToken(parse('body.html'))).toBeUndefined()
   })
-  it('true for html.class', () => {
-    expect(isHtmlSelector('html.class')).toBe(true)
+  it('"html" should be truthy', () => {
+    expect(findHtmlToken(parse('html'))).toBeTruthy()
   })
-  it('true for html#id.class', () => {
-    expect(isHtmlSelector('html#id.class')).toBe(true)
-  })
-  it('true for html[data-attribute="true"]', () => {
-    expect(isHtmlSelector('html')).toBe(true)
-  })
-  it('false for .html', () => {
-    expect(isHtmlSelector('.html')).toBe(false)
-  })
-  it('false for html-hyphenated', () => {
-    expect(isHtmlSelector('html-hyphenated')).toBe(false)
-  })
-  it('false for htmlhtml', () => {
-    expect(isHtmlSelector('htmlhtml')).toBe(false)
+  it('"html.class" should be truthy', () => {
+    expect(findHtmlToken(parse('html.class'))).toBeTruthy()
   })
 })
 
-describe('isBodySelector', () => {
-  it('true for body', () => {
-    expect(isBodySelector('body')).toBe(true)
+describe('findBodyToken', () => {
+  it('"html.body" should be falsey', () => {
+    expect(findBodyToken(parse('html.body'))).toBeUndefined()
   })
-  it('true for body.class', () => {
-    expect(isBodySelector('body.class')).toBe(true)
+  it('"body" should be truthy', () => {
+    expect(findBodyToken(parse('body'))).toBeTruthy()
   })
-  it('true for body#id.class', () => {
-    expect(isBodySelector('body#id.class')).toBe(true)
+  it('"body.class" should be truthy', () => {
+    expect(findBodyToken(parse('body.class'))).toBeTruthy()
   })
-  it('true for body[data-attribute="true"]', () => {
-    expect(isBodySelector('body')).toBe(true)
+})
+
+describe('findIdToken', () => {
+  it('truthy when the selector has a matching id', () => {
+    expect(findIdToken(parse('div#test-id'), 'test-id')).toBeTruthy()
   })
-  it('false for .body', () => {
-    expect(isBodySelector('.body')).toBe(false)
+  it('undefined when selector has an id that does not match the input', () => {
+    expect(findIdToken(parse('div#test-id'), 'wrong-id')).toBeUndefined()
   })
-  it('false for body-hyphenated', () => {
-    expect(isBodySelector('body-hyphenated')).toBe(false)
-  })
-  it('false for bodybody', () => {
-    expect(isBodySelector('bodybody')).toBe(false)
+  it('undefined when the selector does not have an id', () => {
+    expect(findIdToken(parse('div.test-id'), 'test-id')).toBeUndefined()
   })
 })
 
 describe('isFullMatchable', () => {
   it('true when options.isHtmlOrBodyTag is true', () => {
-    expect(isFullMatchable(['body', '>', 'div'], {isHtmlOrBodyTag: true})).toBe(true)
+    expect(isFullMatchable(createRules('body > div'), {isHtmlOrBodyTag: true})).toBe(true)
   })
   it('true when the selector does not reference <body>', () => {
-    expect(isFullMatchable(['.a', '.b', '.c'], {})).toBe(true)
+    expect(isFullMatchable(createRules('.a .b .c'), {})).toBe(true)
   })
   it('true when the selector references a descendent of <body>', () => {
-    expect(isFullMatchable(['body', ' ', 'div'], {})).toBe(true)
+    expect(isFullMatchable(createRules('body div'), {})).toBe(true)
   })
   it('false when the selector references a direct child of <body>', () => {
-    expect(isFullMatchable(['body', '>', 'div'], {})).toBe(false)
+    expect(isFullMatchable(createRules('body > div'), {})).toBe(false)
   })
-  it('false for empty array', () => {
-    expect(isFullMatchable([], {isHtmlOrBodyTag: true})).toBe(false)
+  it('false for empty strings', () => {
+    expect(isFullMatchable(createRules(''), {}, {isHtmlOrBodyTag: true})).toBe(false)
   })
 })
 
 describe('isMatchable', () => {
-  it('false for empty array', () => {
-    expect(isMatchable([])).toBe(false)
-  })
   it('true when <html> is the root element', () => {
-    expect(isMatchable(['html.class'])).toBe(true)
+    expect(isMatchable(createRules('html.class'))).toBe(true)
   })
   it('false when <html> has a parent', () => {
-    expect(isMatchable(['div', '>', 'html.class'])).toBe(false)
+    expect(isMatchable(createRules('div > html.class'))).toBe(false)
   })
   it('true when <body> is the root element', () => {
-    expect(isMatchable(['body'])).toBe(true)
+    expect(isMatchable(createRules('body'))).toBe(true)
   })
   it('true when <body> is preceded by "html >"', () => {
-    expect(isMatchable(['html', '>', 'body'])).toBe(true)
+    expect(isMatchable(createRules('html > body'))).toBe(true)
   })
   it('false when <body> is preceded by "+"', () => {
-    expect(isMatchable(['div', '+', 'body'])).toBe(false)
+    expect(isMatchable(createRules('div + body'))).toBe(false)
   })
   it('false when <body> is preceded by "~"', () => {
-    expect(isMatchable(['div', '~', 'body'])).toBe(false)
+    expect(isMatchable(createRules('div ~ body'))).toBe(false)
   })
   it('false when <body> has a non-html tag as a parent', () => {
-    expect(isMatchable(['div', '>', 'body'])).toBe(false)
+    expect(isMatchable(createRules('div > body'))).toBe(false)
+  })
+  it('false for empty strings', () => {
+    expect(isMatchable(createRules(''), {})).toBe(false)
   })
 })
 
@@ -106,9 +107,34 @@ describe('selectorStringToArray', () => {
   it('[] for empty string', () => {
     expect(selectorStringToArray('')).toEqual([])
   })
-  it('transform string to array with all combinators', () => {
+  it('transform string to array with selectors and combinators', () => {
     const input = 'html > body div ~ .class1 + .class2 span'
-    const expected = ['html', '>', 'body', ' ', 'div', '~', '.class1', '+', '.class2', ' ', 'span']
+    const expected = [
+      {
+        selector: 'html',
+        combinator: '>'
+      },
+      {
+        selector: 'body',
+        combinator: ' '
+      },
+      {
+        selector: 'div',
+        combinator: '~'
+      },
+      {
+        selector: '.class1',
+        combinator: '+'
+      },
+      {
+        selector: '.class2',
+        combinator: ' '
+      },
+      {
+        selector: 'span',
+        combinator: null
+      }
+    ]
     expect(selectorStringToArray(input)).toEqual(expected)
   })
 })
@@ -119,10 +145,36 @@ describe('selectorArrayToString', () => {
   })
   it('concatenate parts of selector with no extra spaces', () => {
     const input = [
-      ['.a', '>', '.b', ' ', '.c', ' ', '.d'],
-      ['#e', ' ', 'div']
+      [
+        {
+          selector: '.a',
+          combinator: '>'
+        },
+        {
+          selector: '.b',
+          combinator: ' '
+        },
+        {
+          selector: '.c',
+          combinator: '+'
+        },
+        {
+          selector: '.d',
+          combinator: null
+        }
+      ],
+      [
+        {
+          selector: '#e',
+          combinator: ' '
+        },
+        {
+          selector: 'div',
+          combinator: null
+        }
+      ]
     ]
-    const expected = ['.a > .b .c .d', '#e div']
+    const expected = ['.a > .b .c + .d', '#e div']
     expect(selectorArrayToString(input)).toEqual(expected)
   })
 })

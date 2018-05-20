@@ -50,52 +50,12 @@ function getOpeningTagName (html) {
  * @returns {Array<Object>}
  */
 function findMatchingRules (options) {
-  // STUB:isCombinator
-
-  // STUB:selectorIncludesToken
-
-  // STUB:isHtmlSelector
-
-  // STUB:isBodySelector
-
-  // STUB:selectorHasId
-
-  // STUB:stringifyElement
-
-  // STUB:getCssRules
-
-  // STUB:findRulesForElement
-
-  // STUB:parseSelectorText
-
-  // STUB:splitPartOfSelector
-
-  // STUB:isFullMatchable
-
-  // STUB:isMatchable
-
-  // STUB:selectorStringToArray
-
-  // STUB:selectorArrayToString
-
-  // STUB:findMatchIndex
-
-  // STUB:validateIndex
-
-  // STUB:combinatorQuery
-
-  // STUB:cssTextToArray
-
-  // STUB:getMediaText
-
-  // STUB:formatRule
-
-  // STUB:getIds
+  // $INJECTED_FUNCTIONS
 
   const matches = Function.call.bind(window.Element.prototype.webkitMatchesSelector)
 
   // eslint-disable-next-line no-undef
-  const rules = getCssRules(document.styleSheets)
+  const rules = parseCssRules(getCssRules(document.styleSheets))
 
   let elements
   if (options.isHtmlOrBodyTag) {
@@ -111,7 +71,7 @@ function findMatchingRules (options) {
   const fullOptions = {...options, ids}
   const result = elements.map(element => {
     // eslint-disable-next-line no-undef
-    return findRulesForElement(matches, rules, element, fullOptions, 0)
+    return findRulesForElements(matches, rules, element, fullOptions, 0)
   })
 
   return Promise.all(result)

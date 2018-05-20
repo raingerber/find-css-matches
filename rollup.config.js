@@ -10,6 +10,10 @@ import MagicString from 'magic-string'
 
 import pkg from './package.json'
 import * as functions from './src/functions'
+import * as domUtils from './src/dom-utils'
+import * as parser from './src/parser'
+
+const functionsToInject = Object.assign({}, functions, domUtils, parser)
 
 const {TEST_BUILD} = process.env
 
@@ -45,17 +49,12 @@ const config = [
         patterns: [
           {
             match: '**/src/css-parser.js',
-            test: /([\t ]*)\/\/\s*STUB:([^\s]+)/g,
+            test: /\/\/ \$INJECTED_FUNCTIONS/,
             replace: (fullMatch, whitespace, id) => {
-              const fn = functions[id]
-              if (!fn) {
-                throw new Error(`The ${id} function is not defined`)
-              }
-
-              let str = fn.toString()
-              str = new MagicString(str)
-              str.indent(whitespace)
-              return str.toString()
+              return Object.keys(functionsToInject).reduce((acc, key) => {
+                const str = new MagicString(functionsToInject[key].toString())
+                return `${acc}${str.indent(whitespace).toString()}\n`
+              }, '')
             }
           },
           {

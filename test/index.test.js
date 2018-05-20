@@ -227,10 +227,10 @@ describe('edge cases involving <html> and <body>', () => {
     const result = await findMatches(styles, html, options)
     expect(result).toMatchSnapshot()
   })
-  it('should not return "body >" in a full match when the snippet does not include <body>', async () => {
+  it('should include "body > *" in a partial match when the snippet does not include <body>', async () => {
     const options = {
       formatSelector,
-      recursive: false,
+      recursive: true,
       includePartialMatches: true
     }
     const styles = `
@@ -239,7 +239,8 @@ describe('edge cases involving <html> and <body>', () => {
       }
     `
     const html = `
-      <div></div>
+      <div>
+      </div>
     `
     const result = await findMatches(styles, html, options)
     expect(result).toMatchSnapshot()
@@ -392,5 +393,58 @@ describe('edge cases involving <html> and <body>', () => {
     `
     const result = await findMatches(styles, html, options)
     expect(result).toMatchSnapshot()
+  })
+})
+
+describe('findMatches with various combinators', () => {
+  it('should find matches for child #3 with relatively basic selectors', async () => {
+    const html = `
+      <div class="container">
+        <div class="child-1">xxx</div>
+        Text node to ignore
+        <div class="child-2">yyy</div>
+        Text node to ignore
+        <div class="child-3">
+          <div class="grandchild-1">zzz</div>
+        </div>
+      </div>
+    `
+    const styles = `
+      .child-2 + .child-3 {
+        color: red;
+      }
+      .child-1 ~ .child-3 {
+        color: red;
+      }
+      .child-1 + .child-3 {
+        color: red;
+      }
+      .null > .child-3 {
+        color: red;
+      }
+      .null ~ .child-3 {
+        color: red;
+      }
+      .could-exist .child-3 {
+        color: red;
+      }
+      .could-exist .container > .child-3 {
+        color: red
+      }
+      .could-exist div > .container > .child-3 > .grandchild-1 {
+        color: red
+      }
+      #a .b > .c ~ .d .grandchild-1 {
+        color: red;
+      }
+    `
+    const options = {
+      formatSelector,
+      recursive: true,
+      includeHtml: true,
+      includePartialMatches: true
+    }
+    const matches = await findMatches(styles, html, options)
+    expect(matches).toMatchSnapshot()
   })
 })
